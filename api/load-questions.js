@@ -2,17 +2,28 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 
 module.exports = async (req, res) => {
+  console.log('api/load-questions.js: Отримано запит:', req.method, req.url);
+  console.log('api/load-questions.js: Параметри запиту:', req.query);
+
   try {
-    const { test } = req.query; // Отримуємо параметр test (questions1 або questions2)
+    const { test } = req.query;
+    console.log('api/load-questions.js: Отриманий параметр test:', test);
+
     const filePath = path.join(__dirname, `../${test}.xlsx`);
+    console.log('api/load-questions.js: Шлях до файлу:', filePath);
 
-    // Читаємо файл за допомогою ExcelJS
     const workbook = new ExcelJS.Workbook();
+    console.log('api/load-questions.js: Читаємо файл...');
     await workbook.xlsx.readFile(filePath);
-    const worksheet = workbook.getWorksheet('Questions'); 
-    const questions = [];
 
-    // Перетворюємо дані з листа в JSON
+    const worksheet = workbook.getWorksheet('Questions'); // Змініть на правильну назву листа
+    if (!worksheet) {
+      console.error('api/load-questions.js: Лист "Sheet1" не знайдено в', test);
+      return res.status(500).json({ error: 'Помилка: лист "Sheet1" не знайдено' });
+    }
+    console.log('api/load-questions.js: Лист "Sheet1" знайдено');
+
+    const questions = [];
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
       if (rowNumber === 1) return; // Пропускаємо заголовок
       const question = {};
@@ -22,10 +33,11 @@ module.exports = async (req, res) => {
       });
       questions.push(question);
     });
+    console.log('api/load-questions.js: Завантажені питання:', questions);
 
     res.status(200).json(questions);
   } catch (error) {
-    console.error('Помилка:', error);
+    console.error('api/load-questions.js: Помилка:', error);
     res.status(500).json({ error: 'Помилка завантаження питань' });
   }
 };
