@@ -1,11 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minimal Test</title>
+  <title>Авторизація</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Hello, Vercel!</h1>
+  <div class="container">
+    <h1>Введіть пароль</h1>
+    <input type="password" id="password" placeholder="Пароль">
+    <button onclick="checkPassword()">Увійти</button>
+    <p id="error" style="color: red;"></p>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
