@@ -1,8 +1,0 @@
-{
-  "name": "alphatest3",
-  "version": "1.0.0",
-  "dependencies": {
-    "alphatest3": "file:",
-    "exceljs": "^4.4.0"
-  }
-}
