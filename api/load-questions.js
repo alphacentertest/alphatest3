@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     // Читаємо файл за допомогою ExcelJS
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
-    const worksheet = workbook.getWorksheet('Questions');
+    const worksheet = workbook.getWorksheet('Questions'); 
     const questions = [];
 
     // Перетворюємо дані з листа в JSON
