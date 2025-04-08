@@ -1,26 +1,27 @@
 const ExcelJS = require('exceljs');
-const path = require('path');
 
 module.exports = async (req, res) => {
-  try {
-    const { test } = req.query; // Наприклад, test=questions1
-    const filePath = path.join(__dirname, `../${test}.xlsx`);
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(filePath);
-    const worksheet = workbook.getWorksheet('Questions');
-    const questions = [];
-    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber === 1) return; // Пропускаємо заголовок
-      const question = {};
-      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-        const header = worksheet.getRow(1).getCell(colNumber).value;
-        question[header] = cell.value;
-      });
-      questions.push(question);
-    });
-    res.status(200).json(questions);
-  } catch (error) {
-    console.error('Помилка:', error);
-    res.status(500).json({ error: 'Помилка завантаження питань' });
+  const { test } = req.query;
+
+  const fileMap = {
+    'questions1': 'questions1.xlsx',
+    'questions2': 'questions2.xlsx'
+  };
+
+  if (!fileMap[test]) {
+    return res.status(400).json({ message: 'Невірний тест' });
   }
+
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(fileMap[test]);
+  const worksheet = workbook.getWorksheet(1);
+  const questions = [];
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) { // Пропускаємо заголовок
+      questions.push(row.values);
+    }
+  });
+
+  res.status(200).json({ questions });
 };
