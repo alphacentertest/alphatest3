@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аутентифікація</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Введіть пароль</h1>
+    <div class="password-container">
+      <input type="password" id="password" placeholder="Пароль" required>
+      <button type="button" id="toggle-password">Показати</button>
+    </div>
+    <div>
+      <input type="checkbox" id="remember-me">
+      <label for="remember-me">Запам'ятати мене</label>
+    </div>
+    <button type="button" id="submit-password">Ввести пароль</button>
+    <div id="error-message" style="display: none; color: red;">Пароль невірний</div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
