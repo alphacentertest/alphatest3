@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "dependencies": {
     "alphatest3": "file:",
-    "xlsx": "^0.18.5"
+    "exceljs": "^4.4.0"
   }
 }
