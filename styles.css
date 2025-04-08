@@ -66,3 +66,18 @@ button:hover {
     width: 100%;
   }
 }
+
+.test-button {
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #58cc02;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .test-button:hover {
+    background-color: #46a502; /* Темніший зелений, як у Duolingo */
+  }

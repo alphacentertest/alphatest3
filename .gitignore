@@ -1,0 +1,5 @@
+# Виключити папку node_modules
+node_modules/
+
+# Виключити файли, які генеруються автоматично
+package-lock.json

@@ -9,8 +9,13 @@
 <body>
   <div class="container">
     <h1>Виберіть тест</h1>
-    <button onclick="window.location.href='test1.html'">Тест 1</button>
-    <button onclick="window.location.href='test2.html'">Тест 2</button>
+    <button class="test-button" onclick="startTest('questions1')">Тест 1</button>
+    <button class="test-button" onclick="startTest('questions2')">Тест 2</button>
   </div>
+  <script>
+    function startTest(testFile) {
+      window.location.href = `test.html?test=${testFile}`;
+    }
+  </script>
 </body>
 </html>
