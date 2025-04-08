@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
     const { test } = req.query; // Отримуємо параметр test (questions1 або questions2)
     const filePath = path.join(__dirname, `../${test}.xlsx`);
     const workbook = XLSX.readFile(filePath);
-    const sheet = workbook.Sheets['Sheet1']; // Припускаємо, що лист називається Sheet1
+    const sheet = workbook.Sheets['Questions'];
     const questions = XLSX.utils.sheet_to_json(sheet);
     res.status(200).json(questions);
   } catch (error) {
