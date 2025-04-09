@@ -48,3 +48,4 @@ module.exports = async (req, res) => {
     console.error('Помилка:', error);
     res.status(500).json({ message: 'Помилка завантаження питань', error: error.message });
   }
+};
