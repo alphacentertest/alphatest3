@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
     let isValid = false;
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // Пропускаем заголовок
-      const storedPassword = row.getCell(2).value; // Пароль находится во второй колонке
+      const storedPassword = row.getCell(2).value; // Пароль во второй колонке
       console.log('Сохраненный пароль:', storedPassword);
       if (storedPassword === password) {
         isValid = true;

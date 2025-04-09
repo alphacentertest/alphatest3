@@ -1,30 +1,80 @@
 body {
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   margin: 0;
+  padding: 20px;
   background-color: #f0f0f0;
 }
 
 .container {
+  max-width: 800px;
+  margin: 0 auto;
   text-align: center;
+}
+
+.page {
+  display: none;
 }
 
 h1 {
   margin-bottom: 30px;
 }
 
+/* Стили для страницы авторизации */
+.password-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+#password-input {
+  padding: 10px;
+  width: 200px;
+}
+
+#toggle-password {
+  padding: 10px;
+  margin-left: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#toggle-password:hover {
+  background-color: #0056b3;
+}
+
+.checkbox-container {
+  margin-bottom: 20px;
+}
+
+#submit-password {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#submit-password:hover {
+  background-color: #0056b3;
+}
+
+#error {
+  color: red;
+}
+
+/* Стили для страницы выбора тестов */
 .test-buttons {
   display: flex;
-  flex-direction: column; /* Кнопки одна под другой */
-  gap: 20px; /* Расстояние между кнопками */
+  flex-direction: column;
+  gap: 20px;
 }
 
 .test-buttons button {
-  padding: 25px 50px; /* Увеличиваем размер кнопок */
-  font-size: 24px; /* Увеличиваем шрифт */
+  padding: 30px 60px;
+  font-size: 28px;
   background-color: #007bff;
   color: white;
   border: none;
@@ -34,5 +84,106 @@ h1 {
 }
 
 .test-buttons button:hover {
-  background-color: #28a745; /* Зеленый цвет при наведении */
+  background-color: #28a745;
+}
+
+/* Стили для страницы теста */
+#timer {
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+#progress {
+  margin-bottom: 20px;
+}
+
+.progress-circle {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin: 0 5px;
+  text-align: center;
+  line-height: 20px;
+}
+
+.answered {
+  background-color: green;
+  color: white;
+}
+
+.unanswered {
+  background-color: red;
+  color: white;
+}
+
+.question-box {
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.question-box.selected {
+  background-color: lightgreen;
+}
+
+.instruction {
+  font-style: italic;
+  margin: 10px 0;
+}
+
+#sortable {
+  display: flex;
+  flex-direction: column;
+}
+
+.sortable-item {
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin: 5px 0;
+  cursor: move;
+}
+
+.navigation {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.modal-content button {
+  margin: 10px;
 }
