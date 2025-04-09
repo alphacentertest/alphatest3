@@ -2,9 +2,10 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 
 module.exports = async (req, res) => {
+  console.log('Received request to /api/load-questions');
   try {
     const { test } = req.query;
-    console.log('Получен запрос с параметром test:', test);
+    console.log('Query parameter test:', test);
 
     const fileMap = {
       'questions1': 'questions1.xlsx',
@@ -12,22 +13,24 @@ module.exports = async (req, res) => {
     };
 
     if (!fileMap[test]) {
-      console.error('Невірний тест:', test);
+      console.error('Invalid test parameter:', test);
       return res.status(400).json({ message: 'Невірний тест' });
     }
 
     const filePath = path.join(__dirname, `../${fileMap[test]}`);
-    console.log('Путь к файлу:', filePath);
+    console.log('File path for questions file:', filePath);
 
     const workbook = new ExcelJS.Workbook();
+    console.log('Reading questions file:', fileMap[test]);
     await workbook.xlsx.readFile(filePath);
 
     const worksheet = workbook.getWorksheet('Questions');
     if (!worksheet) {
-      console.error('Аркуш "Questions" не найдено в файле:', fileMap[test]);
+      console.error('Worksheet "Questions" not found in file:', fileMap[test]);
       return res.status(500).json({ message: 'Аркуш "Questions" не найдено' });
     }
 
+    console.log('Worksheet "Questions" found');
     const questions = [];
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // Пропускаем заголовок
@@ -42,10 +45,10 @@ module.exports = async (req, res) => {
       questions.push(question);
     });
 
-    console.log('Загруженные вопросы:', questions);
+    console.log('Loaded questions:', questions);
     res.status(200).json({ questions });
   } catch (error) {
-    console.error('Помилка:', error);
+    console.error('Error in /api/load-questions:', error);
     res.status(500).json({ message: 'Помилка завантаження питань', error: error.message });
   }
 };
