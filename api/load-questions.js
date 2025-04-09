@@ -14,6 +14,8 @@ module.exports = async (req, res) => {
     }
 
     const filePath = path.join(__dirname, `../${fileMap[test]}`);
+    console.log('Путь к файлу:', filePath);
+
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
 
@@ -28,8 +30,8 @@ module.exports = async (req, res) => {
       const question = {
         picture: row.getCell(1).value, // Picture
         question: row.getCell(2).value, // Question
-        options: Array.from({ length: 12 }, (_, i) => row.getCell(i + 3).value), // Option 1-12
-        correctAnswers: Array.from({ length: 12 }, (_, i) => row.getCell(i + 15).value), // Correct Answer 1-12
+        options: Array.from({ length: 12 }, (_, i) => row.getCell(i + 3).value || null), // Option 1-12
+        correctAnswers: Array.from({ length: 12 }, (_, i) => row.getCell(i + 15).value || null), // Correct Answer 1-12
         type: row.getCell(27).value, // Type
         points: row.getCell(28).value // Points
       };
