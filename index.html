@@ -9,10 +9,15 @@
 <body>
   <div class="container">
     <h1>Введіть пароль</h1>
-    <form id="login-form">
+    <div class="password-container">
       <input type="password" id="password-input" placeholder="Пароль" required>
-      <button type="submit">Ввійти</button>
-    </form>
+      <button type="button" id="toggle-password">Показати</button>
+    </div>
+    <div class="checkbox-container">
+      <input type="checkbox" id="remember-me">
+      <label for="remember-me">Запам’ятати мене</label>
+    </div>
+    <button id="submit-password">Ввести пароль</button>
     <p id="error" style="color: red;"></p>
   </div>
   <script src="/script.js"></script>

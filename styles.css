@@ -7,20 +7,52 @@ body {
   margin: 0;
   background-color: #f0f0f0;
 }
+
 .container {
   text-align: center;
 }
-input {
-  padding: 10px;
-  margin: 10px;
+
+h1 {
+  margin-bottom: 20px;
 }
-button {
+
+.password-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+#password-input {
+  padding: 10px;
+  width: 200px;
+}
+
+#toggle-password {
+  padding: 10px;
+  margin-left: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#toggle-password:hover {
+  background-color: #0056b3;
+}
+
+.checkbox-container {
+  margin-bottom: 20px;
+}
+
+#submit-password {
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
   border: none;
   cursor: pointer;
 }
-button:hover {
+
+#submit-password:hover {
   background-color: #0056b3;
 }
