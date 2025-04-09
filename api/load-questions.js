@@ -24,8 +24,8 @@ module.exports = async (req, res) => {
 
     const worksheet = workbook.getWorksheet('Questions');
     if (!worksheet) {
-      console.error('Аркуш "Questions" не знайдено в файле:', fileMap[test]);
-      return res.status(500).json({ message: 'Аркуш "Questions" не знайдено' });
+      console.error('Аркуш "Questions" не найдено в файле:', fileMap[test]);
+      return res.status(500).json({ message: 'Аркуш "Questions" не найдено' });
     }
 
     const questions = [];

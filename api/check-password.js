@@ -18,8 +18,8 @@ module.exports = async (req, res) => {
 
     const worksheet = workbook.getWorksheet('Users');
     if (!worksheet) {
-      console.error('Аркуш "Users" не знайдено');
-      return res.status(500).json({ success: false, message: 'Аркуш "Users" не знайдено' });
+      console.error('Аркуш "Users" не найдено');
+      return res.status(500).json({ success: false, message: 'Аркуш "Users" не найдено' });
     }
 
     let isValid = false;
