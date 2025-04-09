@@ -1,5 +1,6 @@
 const ExcelJS = require('exceljs');
 const path = require('path');
+const fs = require('fs');
 
 module.exports = async (req, res) => {
   console.log('Received request to /api/load-questions');
@@ -20,6 +21,12 @@ module.exports = async (req, res) => {
     const filePath = path.join(__dirname, `../${fileMap[test]}`);
     console.log('File path for questions file:', filePath);
 
+    // Проверяем, существует ли файл
+    if (!fs.existsSync(filePath)) {
+      console.error('File does not exist:', filePath);
+      return res.status(500).json({ message: `Файл ${fileMap[test]} не знайдено` });
+    }
+
     const workbook = new ExcelJS.Workbook();
     console.log('Reading questions file:', fileMap[test]);
     await workbook.xlsx.readFile(filePath);
@@ -27,7 +34,7 @@ module.exports = async (req, res) => {
     const worksheet = workbook.getWorksheet('Questions');
     if (!worksheet) {
       console.error('Worksheet "Questions" not found in file:', fileMap[test]);
-      return res.status(500).json({ message: 'Аркуш "Questions" не найдено' });
+      return res.status(500).json({ message: 'Аркуш "Questions" не знайдено' });
     }
 
     console.log('Worksheet "Questions" found');
