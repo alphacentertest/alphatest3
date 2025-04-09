@@ -132,6 +132,36 @@ document.getElementById('cancel-finish').addEventListener('click', () => {
   document.getElementById('modal').style.display = 'none';
 });
 
+document.getElementById('test1').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/api/load-questions?test=questions1');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Не вдалося завантажити питання');
+    }
+    const { questions } = await response.json();
+    localStorage.setItem('questions', JSON.stringify(questions));
+    window.location.href = '/test.html';
+  } catch (error) {
+    alert('Помилка завантаження питань: ' + error.message);
+  }
+});
+
+document.getElementById('test2').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/api/load-questions?test=questions2');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Не вдалося завантажити питання');
+    }
+    const { questions } = await response.json();
+    localStorage.setItem('questions', JSON.stringify(questions));
+    window.location.href = '/test.html';
+  } catch (error) {
+    alert('Помилка завантаження питань: ' + error.message);
+  }
+});
+
 // Таймер
 let timeLeft = 600; // 10 минут в секундах
 const timerElement = document.getElementById('timer');

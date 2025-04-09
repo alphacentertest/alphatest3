@@ -10,6 +10,7 @@ module.exports = async (req, res) => {
     };
 
     if (!fileMap[test]) {
+      console.error('Невірний тест:', test);
       return res.status(400).json({ message: 'Невірний тест' });
     }
 
@@ -21,6 +22,7 @@ module.exports = async (req, res) => {
 
     const worksheet = workbook.getWorksheet('Questions');
     if (!worksheet) {
+      console.error('Аркуш "Questions" не знайдено в файле:', fileMap[test]);
       return res.status(500).json({ message: 'Аркуш "Questions" не знайдено' });
     }
 
@@ -38,6 +40,7 @@ module.exports = async (req, res) => {
       questions.push(question);
     });
 
+    console.log('Загруженные вопросы:', questions);
     res.status(200).json({ questions });
   } catch (error) {
     console.error('Помилка:', error);
