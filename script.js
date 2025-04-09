@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const finishButton = document.getElementById('finish');
   const modal = document.getElementById('modal');
   const confirmFinish = document.getElementById('confirm-finish');
-  const cancelFinish = document.getElementById('cancel-finish');
+  const cancelFinish = document.getElementById('cancel-finish'); // Исправлено
 
   console.log('Timer element:', timerElement);
   console.log('Progress element:', progressElement);
