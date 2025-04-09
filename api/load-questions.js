@@ -4,6 +4,8 @@ const path = require('path');
 module.exports = async (req, res) => {
   try {
     const { test } = req.query;
+    console.log('Получен запрос с параметром test:', test);
+
     const fileMap = {
       'questions1': 'questions1.xlsx',
       'questions2': 'questions2.xlsx'
@@ -44,6 +46,6 @@ module.exports = async (req, res) => {
     res.status(200).json({ questions });
   } catch (error) {
     console.error('Помилка:', error);
-    res.status(500).json({ message: 'Помилка завантаження питань' });
+    res.status(500).json({ message: 'Помилка завантаження питань', error: error.message });
   }
 };
