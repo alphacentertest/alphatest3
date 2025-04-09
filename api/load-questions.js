@@ -18,8 +18,8 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: 'Невірний тест' });
     }
 
-    // Файлы теперь находятся в той же папке, что и api/load-questions.js
-    const filePath = path.join(__dirname, fileMap[test]);
+    // Файлы находятся в папке data/
+    const filePath = path.join(__dirname, '../data', fileMap[test]);
     console.log('File path for questions file:', filePath);
 
     // Проверяем, существует ли файл
