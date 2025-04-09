@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let questions = [];
   let selectedOptions = [];
   let timeLeft = 600; // 10 минут в секундах
+  let timerInterval;
 
   // Функция переключения страниц
   function showPage(page) {
@@ -156,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
     questionContainer.innerHTML = html;
     updateProgress();
 
-    // Настройка перетаскивания для ordering
     if (question.type === 'ordering') {
       const sortableItems = document.querySelectorAll('.sortable-item');
       sortableItems.forEach(item => {
@@ -243,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   confirmFinish.addEventListener('click', () => {
+    clearInterval(timerInterval);
     alert('Тест завершено!');
     modal.style.display = 'none';
     showPage(loginPage);
@@ -254,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startTimer() {
     timeLeft = 600; // Сбрасываем таймер
-    const timerInterval = setInterval(() => {
+    timerInterval = setInterval(() => {
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         alert('Час вийшов! Тест завершено.');
@@ -267,4 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
       timeLeft--;
     }, 1000);
   }
+
+  // Показываем страницу авторизации при загрузке
+  showPage(loginPage);
 });
