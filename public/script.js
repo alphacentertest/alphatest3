@@ -420,16 +420,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const answers = [];
 
     questions.forEach((question, index) => {
-      const userAnswer = selectedOptions[index];
+      const userAnswer = selectedOptions[index] || [];
       const correctAnswer = question.correctAnswers;
       const points = question.points || 1; // Очки из колонки 28
       maxPoints += points;
 
       let isCorrect = false;
       if (question.type === 'multiple') {
-        const userSelected = userAnswer || [];
-        const correctSelected = correctAnswer.map((val, i) => val ? i : -1).filter(i => i !== -1);
-        if (userSelected.length === correctSelected.length && userSelected.every(val => correctSelected.includes(val))) {
+        const correctSelected = question.options
+          .map((opt, i) => (correctAnswer[i] ? opt : null))
+          .filter(opt => opt !== null);
+        if (userAnswer.length === correctSelected.length && userAnswer.every(val => correctSelected.includes(val))) {
           correctAnswers++;
           totalPoints += points;
           isCorrect = true;
@@ -692,6 +693,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const testName = document.getElementById(`test-name-${index}`).value;
     const testFile = document.getElementById(`test-file-${index}`).value;
     const testTime = document.getElementById(`test-time-${index}`).value;
+
+    if (!testName || !testFile || !testTime) {
+      alert('Заповніть усі поля');
+      return;
+    }
 
     try {
       const response = await fetch('/api/script?action=update-test', {
