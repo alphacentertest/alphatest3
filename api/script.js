@@ -421,4 +421,4 @@ async function deleteTest(req, res) {
   tests.splice(index, 1);
   fs.writeFileSync(filePath, JSON.stringify(tests));
   res.status(200).json({ success: true });
-}
+};
