@@ -10,26 +10,23 @@
   <div class="container">
     <!-- Страница авторизации -->
     <div id="login-page" class="page">
-      <h1>Введіть пароль</h1>
+      <h1>ВВЕДІТЬ ПАРОЛЬ</h1>
       <div class="password-container">
         <input type="password" id="password-input" placeholder="Пароль" required>
         <button type="button" id="toggle-password">Показати</button>
       </div>
       <div class="checkbox-container">
         <input type="checkbox" id="remember-me">
-        <label for="remember-me">Запам’ятати мене</label>
+        <label for="remember-me">ЗАПАМ’ЯТАТИ МЕНЕ</label>
       </div>
-      <button id="submit-password">Ввести пароль</button>
+      <button id="submit-password">ВВЕСТИ ПАРОЛЬ</button>
       <p id="error" style="color: red;"></p>
     </div>
 
     <!-- Страница выбора тестов -->
     <div id="test-selection-page" class="page" style="display: none;">
       <h1>Виберіть тест</h1>
-      <div class="test-buttons">
-        <button id="test1">Тест 1</button>
-        <button id="test2">Тест 2</button>
-      </div>
+      <div class="test-buttons" id="test-buttons"></div>
     </div>
 
     <!-- Страница теста -->
@@ -38,22 +35,105 @@
       <div id="progress"></div>
       <div id="question-container"></div>
       <div class="navigation">
+        <button id="pause">Пауза</button>
         <button id="prev">Назад</button>
         <button id="next">Вперед</button>
         <button id="finish">Завершити тест</button>
       </div>
     </div>
-  </div>
 
-  <!-- Модальное окно -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <p>Ви дійсно бажаєте завершити тест?</p>
-      <button id="confirm-finish">Так</button>
-      <button id="cancel-finish">Ні</button>
+    <!-- Страница результатов -->
+    <div id="result-page" class="page" style="display: none;">
+      <h1>Результати тесту</h1>
+      <div id="result-container"></div>
+      <div class="result-buttons">
+        <button id="export-pdf">Експортувати в PDF</button>
+        <button id="return-to-main">Повернутися на головну</button>
+        <button id="logout">Вийти</button>
+      </div>
+    </div>
+
+    <!-- Админ-панель -->
+    <div id="admin-page" class="page" style="display: none;">
+      <h1>Адмін-панель</h1>
+      <div class="admin-buttons">
+        <button id="view-results">Перегляд результатів</button>
+        <button id="create-test">Створити тест</button>
+        <button id="edit-tests">Редагувати тести</button>
+      </div>
+    </div>
+
+    <!-- Страница просмотра результатов -->
+    <div id="results-page" class="page" style="display: none;">
+      <h1>Результати користувачів</h1>
+      <table id="results-table">
+        <thead>
+          <tr>
+            <th>Ім’я користувача</th>
+            <th>Дата та час</th>
+            <th>Час проходження</th>
+            <th>Підозріла активність</th>
+            <th>Перегляд відповідей</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+      <button id="back-to-admin">Назад до адмін-панелі</button>
+    </div>
+
+    <!-- Страница просмотра ответов -->
+    <div id="answers-page" class="page" style="display: none;">
+      <h1>Відповіді користувача</h1>
+      <div id="answers-container"></div>
+      <button id="back-to-results">Назад до результатів</button>
+    </div>
+
+    <!-- Страница создания теста -->
+    <div id="create-test-page" class="page" style="display: none;">
+      <h1>Створити тест</h1>
+      <div class="form-group">
+        <label for="test-name">Назва тесту:</label>
+        <input type="text" id="test-name" placeholder="Введіть назву тесту">
+      </div>
+      <div class="form-group">
+        <label for="test-file">Файл з питаннями:</label>
+        <input type="text" id="test-file" placeholder="Введіть назву файлу (наприклад, questions3.xlsx)">
+      </div>
+      <div class="form-group">
+        <label for="test-time">Час на проходження (хвилини):</label>
+        <input type="number" id="test-time" placeholder="Введіть час у хвилинах">
+      </div>
+      <button id="save-test">Зберегти тест</button>
+      <button id="cancel-create">Скасувати</button>
+    </div>
+
+    <!-- Страница редактирования тестов -->
+    <div id="edit-tests-page" class="page" style="display: none;">
+      <h1>Редагувати тести</h1>
+      <div id="tests-list"></div>
+      <button id="back-to-admin-from-edit">Назад до адмін-панелі</button>
+    </div>
+
+    <!-- Модальное окно для завершения теста -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <p>Ви дійсно бажаєте завершити тест?</p>
+        <button id="confirm-finish">Так</button>
+        <button id="cancel-finish">Ні</button>
+      </div>
+    </div>
+
+    <!-- Модальное окно для паузы -->
+    <div id="pause-modal" class="modal">
+      <div class="modal-content">
+        <p>Тест на паузі</p>
+        <button id="resume">Продовжити</button>
+      </div>
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="/script.js"></script>
 </body>
 </html>

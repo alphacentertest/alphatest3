@@ -17,6 +17,8 @@ body {
 
 h1 {
   margin-bottom: 30px;
+  font-size: 36px;
+  font-weight: bold;
 }
 
 /* Стили для страницы авторизации */
@@ -30,14 +32,17 @@ h1 {
 #password-input {
   padding: 10px;
   width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
 }
 
 #toggle-password {
   padding: 10px;
-  margin-left: 10px;
   background-color: #007bff;
   color: white;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -47,6 +52,7 @@ h1 {
 
 .checkbox-container {
   margin-bottom: 20px;
+  text-align: center;
 }
 
 #submit-password {
@@ -54,7 +60,9 @@ h1 {
   background-color: #007bff;
   color: white;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
 }
 
 #submit-password:hover {
@@ -91,10 +99,12 @@ h1 {
 #timer {
   margin-bottom: 20px;
   font-size: 18px;
+  text-align: left;
 }
 
 #progress {
   margin-bottom: 20px;
+  text-align: left;
 }
 
 .progress-circle {
@@ -117,12 +127,20 @@ h1 {
   color: white;
 }
 
+.question {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+  text-align: left;
+}
+
 .question-box {
   padding: 10px;
   border: 1px solid #ccc;
   margin: 10px 0;
   cursor: pointer;
   transition: background-color 0.3s;
+  text-align: left;
 }
 
 .question-box.selected {
@@ -132,6 +150,7 @@ h1 {
 .instruction {
   font-style: italic;
   margin: 10px 0;
+  text-align: left;
 }
 
 #sortable {
@@ -144,6 +163,7 @@ h1 {
   border: 1px solid #ccc;
   margin: 5px 0;
   cursor: move;
+  text-align: left;
 }
 
 .navigation {
@@ -151,9 +171,38 @@ h1 {
   flex-direction: row;
   justify-content: space-between;
   margin-top: 20px;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
 }
 
-button {
+#pause {
+  padding: 10px 20px;
+  background-color: #ffcc00;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#pause:hover {
+  background-color: #e6b800;
+}
+
+#prev {
+  padding: 10px 20px;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#prev:hover {
+  background-color: #cc0000;
+}
+
+#next {
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
@@ -161,8 +210,20 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+#next:hover {
   background-color: #0056b3;
+}
+
+#finish {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#finish:hover {
+  background-color: #218838;
 }
 
 .modal {
@@ -186,4 +247,190 @@ button:hover {
 
 .modal-content button {
   margin: 10px;
+}
+
+/* Стили для страницы результатов */
+#result-container {
+  margin-bottom: 20px;
+}
+
+.result-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #ff0000;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 20px;
+}
+
+.result-circle[style*="50%"], .result-circle[style*="75%"], .result-circle[style*="100%"] {
+  background-color: #28a745;
+}
+
+.result-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+
+#export-pdf {
+  padding: 10px 20px;
+  background-color: #ffcc00;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#export-pdf:hover {
+  background-color: #e6b800;
+}
+
+#return-to-main {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#return-to-main:hover {
+  background-color: #0056b3;
+}
+
+#logout {
+  padding: 10px 20px;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#logout:hover {
+  background-color: #cc0000;
+}
+
+/* Стили для админ-панели */
+.admin-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-buttons button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-buttons button:hover {
+  background-color: #0056b3;
+}
+
+/* Стили для таблицы результатов */
+#results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+#results-table th, #results-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+#results-table th {
+  background-color: #f0f0f0;
+}
+
+#back-to-admin, #back-to-results {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#back-to-admin:hover, #back-to-results:hover {
+  background-color: #0056b3;
+}
+
+/* Стили для страницы создания теста */
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#save-test, #cancel-create {
+  padding: 10px 20px;
+  margin: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+#save-test {
+  background-color: #28a745;
+  color: white;
+}
+
+#save-test:hover {
+  background-color: #218838;
+}
+
+#cancel-create {
+  background-color: #ff0000;
+  color: white;
+}
+
+#cancel-create:hover {
+  background-color: #cc0000;
+}
+
+/* Стили для страницы редактирования тестов */
+#tests-list {
+  margin-bottom: 20px;
+}
+
+.test-item {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.test-item input {
+  margin: 5px 0;
+  padding: 5px;
+  width: calc(100% - 10px);
+}
+
+.test-item button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.test-item button:hover {
+  background-color: #0056b3;
 }
