@@ -134,6 +134,10 @@ h1 {
   text-align: left;
 }
 
+#question-container {
+  margin-bottom: 80px; /* Отступ снизу, чтобы кнопки не перекрывали поле ввода */
+}
+
 .question-box {
   padding: 10px;
   border: 1px solid #ccc;
@@ -141,10 +145,12 @@ h1 {
   cursor: pointer;
   transition: background-color 0.3s;
   text-align: left;
+  background-color: #fff;
 }
 
 .question-box.selected {
-  background-color: lightgreen;
+  background-color: #28a745;
+  color: white;
 }
 
 .instruction {
@@ -319,6 +325,14 @@ h1 {
 
 .admin-buttons button:hover {
   background-color: #0056b3;
+}
+
+#admin-logout {
+  background-color: #ff0000;
+}
+
+#admin-logout:hover {
+  background-color: #cc0000;
 }
 
 /* Стили для таблицы результатов */

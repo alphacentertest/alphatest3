@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Updating selection for question at index:', index);
     if (questions[index].type === 'multiple') {
       const selectedBoxes = document.querySelectorAll('.question-box.selected');
-      selectedOptions[index] = selectedBoxes.length > 0 ? Array.from(selectedBoxes).map(box => box.textContent) : null;
+      selectedOptions[index] = Array.from(selectedBoxes).map(box => box.textContent);
       console.log('Updated selection for multiple choice:', selectedOptions[index]);
     } else if (questions[index].type === 'input') {
       const input = document.getElementById('answer-input');
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (question.type === 'multiple') {
         const userSelected = userAnswer || [];
         const correctSelected = correctAnswer.map((val, i) => val ? i : -1).filter(i => i !== -1);
-        if (userSelected.length === correctSelected.length && userSelected.every(val => correctSelected.includes(parseInt(val)))) {
+        if (userSelected.length === correctSelected.length && userSelected.every(val => correctSelected.includes(val))) {
           correctAnswers++;
           totalPoints += points;
           isCorrect = true;
@@ -470,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
         month: '2-digit',
         year: 'numeric'
       });
-      await fetch('/api/script?action=save-result', {
+      const response = await fetch('/api/script?action=save-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -484,6 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
           answers
         })
       });
+      const result = await response.json();
+      if (!result.success) {
+        console.error('Failed to save test result:', result.message);
+      }
     } catch (error) {
       console.error('Error saving result:', error);
     }
@@ -492,8 +496,26 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('export-pdf').addEventListener('click', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    
+    // Заголовок
+    doc.setFontSize(16);
     doc.text('Результати тесту', 10, 10);
-    doc.text(document.getElementById('result-container').innerText, 10, 20);
+
+    // Данные результатов
+    const resultContainer = document.getElementById('result-container');
+    const lines = [
+      `Кількість правильних відповідей: ${resultContainer.querySelector('p:nth-child(2)').textContent.split(': ')[1]}`,
+      `Загальна кількість питань: ${resultContainer.querySelector('p:nth-child(3)').textContent.split(': ')[1]}`,
+      `Набрано балів: ${resultContainer.querySelector('p:nth-child(4)').textContent.split(': ')[1]}`,
+      `Максимально можлива кількість балів: ${resultContainer.querySelector('p:nth-child(5)').textContent.split(': ')[1]}`,
+      `Відсоток: ${resultContainer.querySelector('p:nth-child(6)').textContent.split(': ')[1]}`
+    ];
+
+    doc.setFontSize(12);
+    lines.forEach((line, index) => {
+      doc.text(line, 10, 20 + (index * 10));
+    });
+
     doc.save('result.pdf');
   });
 
@@ -515,6 +537,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('view-results').addEventListener('click', async () => {
     try {
       const response = await fetch('/api/script?action=get-results');
+      if (!response.ok) {
+        throw new Error('Не вдалося завантажити результати');
+      }
       testResults = await response.json();
       const resultsBody = document.getElementById('results-body');
       resultsBody.innerHTML = '';
@@ -533,6 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showPage(resultsPage);
     } catch (error) {
       console.error('Error loading results:', error);
+      alert('Помилка завантаження результатів: ' + error.message);
     }
   });
 
@@ -585,10 +611,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tests.push({ id: `test${tests.length + 1}`, name: testName, file: testFile, time: parseInt(testTime) });
         showPage(adminPage);
       } else {
-        alert('Помилка створення тесту');
+        alert(result.message || 'Помилка створення тесту');
       }
     } catch (error) {
       console.error('Error creating test:', error);
+      alert('Помилка створення тесту: ' + error.message);
     }
   });
 
@@ -608,6 +635,16 @@ document.addEventListener('DOMContentLoaded', () => {
     showPage(resultsPage);
   });
 
+  document.getElementById('admin-logout').addEventListener('click', async () => {
+    try {
+      await fetch('/api/script?action=logout', { method: 'POST' });
+      localStorage.removeItem('savedPassword');
+      showPage(loginPage);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  });
+
   async function viewAnswers(index) {
     const result = testResults[index];
     const answersContainer = document.getElementById('answers-container');
@@ -623,6 +660,32 @@ document.addEventListener('DOMContentLoaded', () => {
       answersContainer.appendChild(answerDiv);
     });
     showPage(answersPage);
+  }
+
+  async function updateTest(index) {
+    const testName = document.getElementById(`test-name-${index}`).value;
+    const testFile = document.getElementById(`test-file-${index}`).value;
+    const testTime = document.getElementById(`test-time-${index}`).value;
+
+    try {
+      const response = await fetch('/api/script?action=update-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index, name: testName, file: testFile, time: parseInt(testTime) })
+      });
+      const result = await response.json();
+      if (result.success) {
+        tests[index] = { ...tests[index], name: testName, file: testFile, time: parseInt(testTime) };
+        alert('Тест оновлено');
+        // Обновляем отображение списка тестов
+        document.getElementById('edit-tests').click();
+      } else {
+        alert('Помилка оновлення тесту');
+      }
+    } catch (error) {
+      console.error('Error updating test:', error);
+      alert('Помилка оновлення тесту: ' + error.message);
+    }
   }
 
   async function deleteResult(index) {
@@ -641,29 +704,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Error deleting result:', error);
-    }
-  }
-
-  async function updateTest(index) {
-    const testName = document.getElementById(`test-name-${index}`).value;
-    const testFile = document.getElementById(`test-file-${index}`).value;
-    const testTime = document.getElementById(`test-time-${index}`).value;
-
-    try {
-      const response = await fetch('/api/script?action=update-test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ index, name: testName, file: testFile, time: parseInt(testTime) })
-      });
-      const result = await response.json();
-      if (result.success) {
-        tests[index] = { ...tests[index], name: testName, file: testFile, time: parseInt(testTime) };
-        alert('Тест оновлено');
-      } else {
-        alert('Помилка оновлення тесту');
-      }
-    } catch (error) {
-      console.error('Error updating test:', error);
     }
   }
 
