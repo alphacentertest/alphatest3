@@ -178,18 +178,6 @@ h1 {
   width: 800px;
 }
 
-#pause {
-  padding: 10px 20px;
-  background-color: #ffcc00;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-#pause:hover {
-  background-color: #e6b800;
-}
-
 #prev {
   padding: 10px 20px;
   background-color: #ff0000;

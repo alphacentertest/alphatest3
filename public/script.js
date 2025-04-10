@@ -24,12 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const prevButton = document.getElementById('prev');
   const nextButton = document.getElementById('next');
   const finishButton = document.getElementById('finish');
-  const pauseButton = document.getElementById('pause');
   const modal = document.getElementById('modal');
   const confirmFinish = document.getElementById('confirm-finish');
   const cancelFinish = document.getElementById('cancel-finish');
-  const pauseModal = document.getElementById('pause-modal');
-  const resumeButton = document.getElementById('resume');
 
   let currentUser = '';
   let currentRole = '';
@@ -43,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastBlurTime = null;
   let testResults = [];
   let tests = [];
-  let isPaused = false;
 
   // Функция переключения страниц
   function showPage(page) {
@@ -199,17 +195,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const allOptions = document.querySelectorAll('.question-box');
 
     if (questions[index].type === 'multiple') {
+      // Для множественного выбора переключаем состояние
       if (isSelected) {
         element.classList.remove('selected');
       } else {
         element.classList.add('selected');
       }
     } else {
+      // Для одиночного выбора снимаем выделение с других вариантов
       allOptions.forEach(opt => opt.classList.remove('selected'));
       element.classList.add('selected');
     }
 
-    updateSelection(index, element);
+    updateSelection(index);
   }
 
   function setupDragAndDrop(index) {
@@ -294,14 +292,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function updateSelection(index, element) {
+  function updateSelection(index) {
     console.log('Updating selection for question at index:', index);
     if (questions[index].type === 'multiple') {
       const selectedBoxes = document.querySelectorAll('.question-box.selected');
       selectedOptions[index] = selectedBoxes.length > 0 ? Array.from(selectedBoxes).map(box => box.textContent) : null;
       console.log('Updated selection for multiple choice:', selectedOptions[index]);
     } else if (questions[index].type === 'input') {
-      selectedOptions[index] = element.value || null;
+      const input = document.getElementById('answer-input');
+      selectedOptions[index] = input ? input.value : null;
       console.log('Updated selection for input:', selectedOptions[index]);
     } else if (questions[index].type === 'ordering') {
       const sortableItems = document.querySelectorAll('.sortable-item');
@@ -345,20 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   cancelFinish.addEventListener('click', () => {
     modal.style.display = 'none';
-  });
-
-  pauseButton.addEventListener('click', () => {
-    if (!isPaused) {
-      isPaused = true;
-      clearInterval(timerInterval);
-      pauseModal.style.display = 'flex';
-    }
-  });
-
-  resumeButton.addEventListener('click', () => {
-    isPaused = false;
-    pauseModal.style.display = 'none';
-    startTimer();
   });
 
   function startTimer() {
@@ -416,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
     questions.forEach((question, index) => {
       const userAnswer = selectedOptions[index];
       const correctAnswer = question.correctAnswers;
-      const points = question.points || 1;
+      const points = question.points || 1; // Очки из колонки 28
       maxPoints += points;
 
       let isCorrect = false;
@@ -454,8 +439,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('result-container');
     resultContainer.innerHTML = `
       <div class="result-circle">${percentage}%</div>
-      <p>Кількість балів (правильних відповідей): ${correctAnswers}</p>
-      <p>Максимально можлива кількість балів: ${totalQuestions}</p>
+      <p>Кількість правильних відповідей: ${correctAnswers}</p>
+      <p>Загальна кількість питань: ${totalQuestions}</p>
+      <p>Набрано балів: ${totalPoints}</p>
+      <p>Максимально можлива кількість балів: ${maxPoints}</p>
       <p>Відсоток: ${percentage}%</p>
     `;
 
