@@ -138,19 +138,24 @@ h1 {
   margin-bottom: 80px; /* Отступ снизу, чтобы кнопки не перекрывали поле ввода */
 }
 
-.question-box {
+.option-container {
+  display: flex;
+  align-items: center;
   padding: 10px;
   border: 1px solid #ccc;
   margin: 10px 0;
-  cursor: pointer;
-  transition: background-color 0.3s;
   text-align: left;
   background-color: #fff;
+  transition: background-color 0.3s;
 }
 
-.question-box.selected {
+.option-container.selected {
   background-color: #28a745;
   color: white;
+}
+
+.option-container input[type="checkbox"] {
+  margin-right: 10px;
 }
 
 .instruction {

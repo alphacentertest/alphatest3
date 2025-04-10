@@ -176,20 +176,31 @@ async function getResults(req, res) {
 async function saveResult(req, res) {
   const { username, totalPoints, maxPoints, percentage, startTime, duration, suspiciousActivity, answers } = req.body;
   if (!username || totalPoints === undefined || maxPoints === undefined || percentage === undefined || !startTime || !duration || suspiciousActivity === undefined || !answers) {
+    console.error('Incomplete data for saving result:', req.body);
     return res.status(400).json({ success: false, message: 'Неповні дані для збереження результату' });
   }
 
   const filePath = path.join(__dirname, '../data/results.json');
   let results = [];
   if (fs.existsSync(filePath)) {
-    results = JSON.parse(fs.readFileSync(filePath));
+    try {
+      results = JSON.parse(fs.readFileSync(filePath));
+    } catch (error) {
+      console.error('Error parsing results.json:', error);
+      results = [];
+    }
   } else {
     results = [];
   }
 
   results.push({ username, totalPoints, maxPoints, percentage, startTime, duration, suspiciousActivity, answers });
-  fs.writeFileSync(filePath, JSON.stringify(results));
-  res.status(200).json({ success: true });
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(results, null, 2));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error writing to results.json:', error);
+    res.status(500).json({ success: false, message: 'Помилка збереження результату' });
+  }
 }
 
 // Удаление результата
@@ -202,7 +213,12 @@ async function deleteResult(req, res) {
   const filePath = path.join(__dirname, '../data/results.json');
   let results = [];
   if (fs.existsSync(filePath)) {
-    results = JSON.parse(fs.readFileSync(filePath));
+    try {
+      results = JSON.parse(fs.readFileSync(filePath));
+    } catch (error) {
+      console.error('Error parsing results.json:', error);
+      results = [];
+    }
   } else {
     results = [];
   }
@@ -212,8 +228,13 @@ async function deleteResult(req, res) {
   }
 
   results.splice(index, 1);
-  fs.writeFileSync(filePath, JSON.stringify(results));
-  res.status(200).json({ success: true });
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(results, null, 2));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error writing to results.json:', error);
+    res.status(500).json({ success: false, message: 'Помилка видалення результату' });
+  }
 }
 
 // Получение списка тестов
@@ -233,33 +254,50 @@ async function getTests(req, res) {
 async function createTest(req, res) {
   const { name, file, time } = req.body;
   if (!name || !file || !time) {
+    console.error('Incomplete data for creating test:', req.body);
     return res.status(400).json({ success: false, message: 'Заповніть усі поля' });
   }
 
   const filePath = path.join(__dirname, '../data/tests.json');
   let tests = [];
   if (fs.existsSync(filePath)) {
-    tests = JSON.parse(fs.readFileSync(filePath));
+    try {
+      tests = JSON.parse(fs.readFileSync(filePath));
+    } catch (error) {
+      console.error('Error parsing tests.json:', error);
+      tests = [];
+    }
   } else {
     tests = [];
   }
 
   tests.push({ id: `test${tests.length + 1}`, name, file, time: parseInt(time) });
-  fs.writeFileSync(filePath, JSON.stringify(tests));
-  res.status(200).json({ success: true });
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(tests, null, 2));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error writing to tests.json:', error);
+    res.status(500).json({ success: false, message: 'Помилка створення тесту' });
+  }
 }
 
 // Обновление теста
 async function updateTest(req, res) {
   const { index, name, file, time } = req.body;
   if (index === undefined || !name || !file || !time) {
+    console.error('Incomplete data for updating test:', req.body);
     return res.status(400).json({ success: false, message: 'Заповніть усі поля' });
   }
 
   const filePath = path.join(__dirname, '../data/tests.json');
   let tests = [];
   if (fs.existsSync(filePath)) {
-    tests = JSON.parse(fs.readFileSync(filePath));
+    try {
+      tests = JSON.parse(fs.readFileSync(filePath));
+    } catch (error) {
+      console.error('Error parsing tests.json:', error);
+      tests = [];
+    }
   } else {
     tests = [];
   }
@@ -269,8 +307,13 @@ async function updateTest(req, res) {
   }
 
   tests[index] = { ...tests[index], name, file, time: parseInt(time) };
-  fs.writeFileSync(filePath, JSON.stringify(tests));
-  res.status(200).json({ success: true });
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(tests, null, 2));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error writing to tests.json:', error);
+    res.status(500).json({ success: false, message: 'Помилка оновлення тесту' });
+  }
 }
 
 // Удаление теста
@@ -283,7 +326,12 @@ async function deleteTest(req, res) {
   const filePath = path.join(__dirname, '../data/tests.json');
   let tests = [];
   if (fs.existsSync(filePath)) {
-    tests = JSON.parse(fs.readFileSync(filePath));
+    try {
+      tests = JSON.parse(fs.readFileSync(filePath));
+    } catch (error) {
+      console.error('Error parsing tests.json:', error);
+      tests = [];
+    }
   } else {
     tests = [];
   }
@@ -293,6 +341,11 @@ async function deleteTest(req, res) {
   }
 
   tests.splice(index, 1);
-  fs.writeFileSync(filePath, JSON.stringify(tests));
-  res.status(200).json({ success: true });
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(tests, null, 2));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error writing to tests.json:', error);
+    res.status(500).json({ success: false, message: 'Помилка видалення тесту' });
+  }
 }

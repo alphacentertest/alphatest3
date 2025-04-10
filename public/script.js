@@ -160,10 +160,14 @@ document.addEventListener('DOMContentLoaded', () => {
     html += `<p class="instruction">${getInstruction(question.type)}</p>`;
 
     if (question.type === 'multiple') {
-      console.log('Question type is multiple, adding options');
+      console.log('Question type is multiple, adding checkbox options');
       question.options.forEach((option, i) => {
         if (option) {
-          html += `<div class="question-box" onclick="selectOption(this, ${index}, ${i})">${option}</div>`;
+          html += `
+            <div class="option-container">
+              <input type="checkbox" id="option-${index}-${i}" onchange="selectOption(${index}, ${i}, this)">
+              <label for="option-${index}-${i}">${option}</label>
+            </div>`;
         }
       });
     } else if (question.type === 'input') {
@@ -187,24 +191,41 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Setting up drag-and-drop for ordering question');
       setupDragAndDrop(index);
     }
+
+    // Восстанавливаем состояние чекбоксов
+    if (question.type === 'multiple' && selectedOptions[index]) {
+      selectedOptions[index].forEach(optionText => {
+        question.options.forEach((opt, i) => {
+          if (opt === optionText) {
+            const checkbox = document.getElementById(`option-${index}-${i}`);
+            if (checkbox) {
+              checkbox.checked = true;
+              checkbox.parentElement.classList.add('selected');
+            }
+          }
+        });
+      });
+    }
   }
 
-  function selectOption(element, index, optionIndex) {
-    console.log('Option selected:', optionIndex);
-    const isSelected = element.classList.contains('selected');
-    const allOptions = document.querySelectorAll('.question-box');
+  function selectOption(index, optionIndex, checkbox) {
+    console.log('Option selected:', optionIndex, 'Checked:', checkbox.checked);
+    const container = checkbox.parentElement;
 
     if (questions[index].type === 'multiple') {
-      // Для множественного выбора переключаем состояние
-      if (isSelected) {
-        element.classList.remove('selected');
+      if (checkbox.checked) {
+        container.classList.add('selected');
       } else {
-        element.classList.add('selected');
+        container.classList.remove('selected');
       }
     } else {
-      // Для одиночного выбора снимаем выделение с других вариантов
-      allOptions.forEach(opt => opt.classList.remove('selected'));
-      element.classList.add('selected');
+      const allOptions = document.querySelectorAll(`#question-container input[type="checkbox"]`);
+      allOptions.forEach(opt => {
+        opt.checked = false;
+        opt.parentElement.classList.remove('selected');
+      });
+      checkbox.checked = true;
+      container.classList.add('selected');
     }
 
     updateSelection(index);
@@ -295,8 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateSelection(index) {
     console.log('Updating selection for question at index:', index);
     if (questions[index].type === 'multiple') {
-      const selectedBoxes = document.querySelectorAll('.question-box.selected');
-      selectedOptions[index] = Array.from(selectedBoxes).map(box => box.textContent);
+      const selectedBoxes = document.querySelectorAll(`#question-container input[type="checkbox"]:checked`);
+      selectedOptions[index] = Array.from(selectedBoxes).map(box => box.nextElementSibling.textContent);
       console.log('Updated selection for multiple choice:', selectedOptions[index]);
     } else if (questions[index].type === 'input') {
       const input = document.getElementById('answer-input');
@@ -313,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateProgress() {
     console.log('Updating progress');
     progressElement.innerHTML = questions.map((_, i) => {
-      const isAnswered = selectedOptions[i] !== null;
+      const isAnswered = selectedOptions[i] !== null && selectedOptions[i].length > 0;
       return `<span class="progress-circle ${isAnswered ? 'answered' : 'unanswered'}">${i + 1}</span>`;
     }).join('');
   }
@@ -487,6 +508,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await response.json();
       if (!result.success) {
         console.error('Failed to save test result:', result.message);
+      } else {
+        console.log('Test result saved successfully');
       }
     } catch (error) {
       console.error('Error saving result:', error);
@@ -497,6 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
+    // Устанавливаем шрифт с поддержкой кириллицы (например, Times)
+    doc.setFont("times", "normal");
+
     // Заголовок
     doc.setFontSize(16);
     doc.text('Результати тесту', 10, 10);
