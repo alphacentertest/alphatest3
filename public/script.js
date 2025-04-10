@@ -461,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('result-container');
     resultContainer.innerHTML = `
       <div class="result-circle">${percentage}%</div>
+      <p>Користувач: ${currentUser}</p>
       <p>Кількість правильних відповідей: ${correctAnswers}</p>
       <p>Загальна кількість питань: ${totalQuestions}</p>
       <p>Набрано балів: ${totalPoints}</p>
@@ -521,8 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Устанавливаем шрифт с поддержкой кириллицы (например, Times)
-    doc.setFont("times", "normal");
+    // Устанавливаем шрифт Roboto
+    doc.setFont("Roboto", "normal");
 
     // Заголовок
     doc.setFontSize(16);
@@ -531,11 +532,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Данные результатов
     const resultContainer = document.getElementById('result-container');
     const lines = [
-      `Кількість правильних відповідей: ${resultContainer.querySelector('p:nth-child(2)').textContent.split(': ')[1]}`,
-      `Загальна кількість питань: ${resultContainer.querySelector('p:nth-child(3)').textContent.split(': ')[1]}`,
-      `Набрано балів: ${resultContainer.querySelector('p:nth-child(4)').textContent.split(': ')[1]}`,
-      `Максимально можлива кількість балів: ${resultContainer.querySelector('p:nth-child(5)').textContent.split(': ')[1]}`,
-      `Відсоток: ${resultContainer.querySelector('p:nth-child(6)').textContent.split(': ')[1]}`
+      `Користувач: ${resultContainer.querySelector('p:nth-child(2)').textContent.split(': ')[1]}`,
+      `Кількість правильних відповідей: ${resultContainer.querySelector('p:nth-child(3)').textContent.split(': ')[1]}`,
+      `Загальна кількість питань: ${resultContainer.querySelector('p:nth-child(4)').textContent.split(': ')[1]}`,
+      `Набрано балів: ${resultContainer.querySelector('p:nth-child(5)').textContent.split(': ')[1]}`,
+      `Максимально можлива кількість балів: ${resultContainer.querySelector('p:nth-child(6)').textContent.split(': ')[1]}`,
+      `Відсоток: ${resultContainer.querySelector('p:nth-child(7)').textContent.split(': ')[1]}`
     ];
 
     doc.setFontSize(12);
@@ -574,6 +576,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${result.username}</td>
+          <td>${result.totalPoints}</td>
+          <td>${result.maxPoints}</td>
+          <td>${result.percentage}%</td>
           <td>${result.startTime}</td>
           <td>${result.duration}</td>
           <td>${result.suspiciousActivity}%</td>
@@ -673,20 +678,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function viewAnswers(index) {
-    const result = testResults[index];
-    const answersContainer = document.getElementById('answers-container');
-    answersContainer.innerHTML = '';
-    result.answers.forEach((answer, i) => {
-      const answerDiv = document.createElement('div');
-      answerDiv.innerHTML = `
-        <p>Питання ${i + 1}: ${answer.question}</p>
-        <p>Відповідь користувача: ${answer.userAnswer}</p>
-        <p>Правильна відповідь: ${answer.correctAnswer}</p>
-        <p>Бали: ${answer.points}</p>
-      `;
-      answersContainer.appendChild(answerDiv);
-    });
-    showPage(answersPage);
+    try {
+      const result = testResults[index];
+      if (!result || !result.answers) {
+        throw new Error('Результат або відповіді відсутні');
+      }
+      const answersContainer = document.getElementById('answers-container');
+      answersContainer.innerHTML = '';
+      result.answers.forEach((answer, i) => {
+        const answerDiv = document.createElement('div');
+        answerDiv.innerHTML = `
+          <p>Питання ${i + 1}: ${answer.question}</p>
+          <p>Відповідь користувача: ${answer.userAnswer}</p>
+          <p>Правильна відповідь: ${answer.correctAnswer}</p>
+          <p>Бали: ${answer.points}</p>
+        `;
+        answersContainer.appendChild(answerDiv);
+      });
+      showPage(answersPage);
+    } catch (error) {
+      console.error('Error viewing answers:', error);
+      alert('Помилка перегляду відповідей: ' + error.message);
+    }
   }
 
   async function updateTest(index) {
@@ -732,10 +745,11 @@ document.addEventListener('DOMContentLoaded', () => {
         testResults.splice(index, 1);
         document.getElementById('view-results').click();
       } else {
-        alert('Помилка видалення результату');
+        alert(result.message || 'Помилка видалення результату');
       }
     } catch (error) {
       console.error('Error deleting result:', error);
+      alert('Помилка видалення результату: ' + error.message);
     }
   }
 

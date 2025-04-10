@@ -438,6 +438,36 @@ h1 {
   cursor: pointer;
 }
 
+.navigation {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 20px;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%; /* Адаптируем ширину для мобильных устройств */
+  max-width: 800px; /* Ограничиваем максимальную ширину */
+  padding: 0 10px; /* Добавляем отступы по бокам */
+  box-sizing: border-box;
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 600px) {
+  .navigation {
+    flex-wrap: wrap; /* Перенос кнопок на следующую строку, если не помещаются */
+    justify-content: center;
+    gap: 10px; /* Добавляем расстояние между кнопками */
+  }
+
+  #prev, #next, #finish {
+    flex: 1; /* Кнопки занимают равное пространство */
+    min-width: 100px; /* Минимальная ширина кнопок */
+    margin: 5px;
+  }
+}
+
 .test-item button:hover {
   background-color: #0056b3;
 }
