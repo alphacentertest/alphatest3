@@ -1,6 +1,9 @@
 const ExcelJS = require('exceljs');
 const path = require('path');
-const fs = require('fs');
+const Redis = require('ioredis');
+
+// Подключаемся к Redis
+const redis = new Redis(process.env.REDIS_URL);
 
 module.exports = async (req, res) => {
   const { action } = req.query;
@@ -148,7 +151,7 @@ async function loadQuestions(req, res) {
       options: Array.from({ length: 12 }, (_, i) => row.getCell(i + 3).value || null), // Option 1-12
       correctAnswers: Array.from({ length: 12 }, (_, i) => row.getCell(i + 15).value || null), // Correct Answer 1-12
       type: row.getCell(27).value, // Type
-      points: row.getCell(28).value // Points (колонка 28)
+      points: parseInt(row.getCell(28).value) || 1 // Points (колонка 28)
     };
     questions.push(question);
   });
@@ -164,12 +167,13 @@ async function logout(req, res) {
 
 // Получение результатов
 async function getResults(req, res) {
-  const filePath = path.join(__dirname, '../data/results.json');
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify([]));
+  try {
+    const results = await redis.get('results') || '[]';
+    res.status(200).json(JSON.parse(results));
+  } catch (error) {
+    console.error('Error getting results from Redis:', error);
+    res.status(500).json({ success: false, message: 'Помилка завантаження результатів' });
   }
-  const results = JSON.parse(fs.readFileSync(filePath));
-  res.status(200).json(results);
 }
 
 // Сохранение результата
@@ -180,25 +184,14 @@ async function saveResult(req, res) {
     return res.status(400).json({ success: false, message: 'Неповні дані для збереження результату' });
   }
 
-  const filePath = path.join(__dirname, '../data/results.json');
-  let results = [];
-  if (fs.existsSync(filePath)) {
-    try {
-      results = JSON.parse(fs.readFileSync(filePath));
-    } catch (error) {
-      console.error('Error parsing results.json:', error);
-      results = [];
-    }
-  } else {
-    results = [];
-  }
-
-  results.push({ username, totalPoints, maxPoints, percentage, startTime, duration, suspiciousActivity, answers });
   try {
-    fs.writeFileSync(filePath, JSON.stringify(results, null, 2));
+    let results = await redis.get('results') || '[]';
+    results = JSON.parse(results);
+    results.push({ username, totalPoints, maxPoints, percentage, startTime, duration, suspiciousActivity, answers });
+    await redis.set('results', JSON.stringify(results));
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error writing to results.json:', error);
+    console.error('Error saving result to Redis:', error);
     res.status(500).json({ success: false, message: 'Помилка збереження результату' });
   }
 }
@@ -210,114 +203,83 @@ async function deleteResult(req, res) {
     return res.status(400).json({ success: false, message: 'Індекс результату не вказано' });
   }
 
-  const filePath = path.join(__dirname, '../data/results.json');
-  let results = [];
-  if (fs.existsSync(filePath)) {
-    try {
-      results = JSON.parse(fs.readFileSync(filePath));
-    } catch (error) {
-      console.error('Error parsing results.json:', error);
-      results = [];
-    }
-  } else {
-    results = [];
-  }
-
-  if (index < 0 || index >= results.length) {
-    return res.status(400).json({ success: false, message: 'Невірний індекс результату' });
-  }
-
-  results.splice(index, 1);
   try {
-    fs.writeFileSync(filePath, JSON.stringify(results, null, 2));
+    let results = await redis.get('results') || '[]';
+    results = JSON.parse(results);
+    if (index < 0 || index >= results.length) {
+      return res.status(400).json({ success: false, message: 'Невірний індекс результату' });
+    }
+    results.splice(index, 1);
+    await redis.set('results', JSON.stringify(results));
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error writing to results.json:', error);
+    console.error('Error deleting result from Redis:', error);
     res.status(500).json({ success: false, message: 'Помилка видалення результату' });
   }
 }
 
 // Получение списка тестов
 async function getTests(req, res) {
-  const filePath = path.join(__dirname, '../data/tests.json');
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify([
-      { id: 'test1', name: 'Тест 1', file: 'questions1.xlsx', time: 10 },
-      { id: 'test2', name: 'Тест 2', file: 'questions2.xlsx', time: 10 }
-    ]));
-  }
-  const tests = JSON.parse(fs.readFileSync(filePath));
-  res.status(200).json(tests);
-}
-
-// Создание теста
-async function createTest(req, res) {
-    const { name, file, time } = req.body;
-    if (!name || !file || !time) {
-      console.error('Incomplete data for creating test:', req.body);
-      return res.status(400).json({ success: false, message: 'Заповніть усі поля' });
-    }
-  
-    const filePath = path.join(__dirname, '../data/tests.json');
-    let tests = [];
-    if (fs.existsSync(filePath)) {
-      try {
-        tests = JSON.parse(fs.readFileSync(filePath));
-      } catch (error) {
-        console.error('Error parsing tests.json:', error);
-        tests = [];
-      }
-    } else {
+  try {
+    let tests = await redis.get('tests');
+    if (!tests) {
       tests = [
         { id: 'test1', name: 'Тест 1', file: 'questions1.xlsx', time: 10 },
         { id: 'test2', name: 'Тест 2', file: 'questions2.xlsx', time: 10 }
       ];
-    }
-  
-    tests.push({ id: `test${tests.length + 1}`, name, file, time: parseInt(time) });
-    try {
-      fs.writeFileSync(filePath, JSON.stringify(tests, null, 2));
-      res.status(200).json({ success: true });
-    } catch (error) {
-      console.error('Error writing to tests.json:', error);
-      res.status(500).json({ success: false, message: 'Помилка створення тесту' });
-    }
-  }
-  
-  // Обновление теста
-  async function updateTest(req, res) {
-    const { index, name, file, time } = req.body;
-    if (index === undefined || !name || !file || !time) {
-      console.error('Incomplete data for updating test:', req.body);
-      return res.status(400).json({ success: false, message: 'Заповніть усі поля' });
-    }
-  
-    const filePath = path.join(__dirname, '../data/tests.json');
-    let tests = [];
-    if (fs.existsSync(filePath)) {
-      try {
-        tests = JSON.parse(fs.readFileSync(filePath));
-      } catch (error) {
-        console.error('Error parsing tests.json:', error);
-        tests = [];
-      }
+      await redis.set('tests', JSON.stringify(tests));
     } else {
-      tests = [];
+      tests = JSON.parse(tests);
     }
-  
+    res.status(200).json(tests);
+  } catch (error) {
+    console.error('Error getting tests from Redis:', error);
+    res.status(500).json({ success: false, message: 'Помилка завантаження тестів' });
+  }
+}
+
+// Создание теста
+async function createTest(req, res) {
+  const { name, file, time } = req.body;
+  if (!name || !file || !time) {
+    console.error('Incomplete data for creating test:', req.body);
+    return res.status(400).json({ success: false, message: 'Заповніть усі поля' });
+  }
+
+  try {
+    let tests = await redis.get('tests') || '[]';
+    tests = JSON.parse(tests);
+    tests.push({ id: `test${tests.length + 1}`, name, file, time: parseInt(time) });
+    await redis.set('tests', JSON.stringify(tests));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error creating test in Redis:', error);
+    res.status(500).json({ success: false, message: 'Помилка створення тесту' });
+  }
+}
+
+// Обновление теста
+async function updateTest(req, res) {
+  const { index, name, file, time } = req.body;
+  if (index === undefined || !name || !file || !time) {
+    console.error('Incomplete data for updating test:', req.body);
+    return res.status(400).json({ success: false, message: 'Заповніть усі поля' });
+  }
+
+  try {
+    let tests = await redis.get('tests') || '[]';
+    tests = JSON.parse(tests);
     if (index < 0 || index >= tests.length) {
       return res.status(400).json({ success: false, message: 'Невірний індекс тесту' });
     }
-  
     tests[index] = { ...tests[index], name, file, time: parseInt(time) };
-    try {
-      fs.writeFileSync(filePath, JSON.stringify(tests, null, 2));
-      res.status(200).json({ success: true });
-    } catch (error) {
-      console.error('Error writing to tests.json:', error);
-      res.status(500).json({ success: false, message: 'Помилка оновлення тесту' });
-    }
+    await redis.set('tests', JSON.stringify(tests));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error updating test in Redis:', error);
+    res.status(500).json({ success: false, message: 'Помилка оновлення тесту' });
   }
+}
 
 // Удаление теста
 async function deleteTest(req, res) {
@@ -326,29 +288,17 @@ async function deleteTest(req, res) {
     return res.status(400).json({ success: false, message: 'Індекс тесту не вказано' });
   }
 
-  const filePath = path.join(__dirname, '../data/tests.json');
-  let tests = [];
-  if (fs.existsSync(filePath)) {
-    try {
-      tests = JSON.parse(fs.readFileSync(filePath));
-    } catch (error) {
-      console.error('Error parsing tests.json:', error);
-      tests = [];
-    }
-  } else {
-    tests = [];
-  }
-
-  if (index < 0 || index >= tests.length) {
-    return res.status(400).json({ success: false, message: 'Невірний індекс тесту' });
-  }
-
-  tests.splice(index, 1);
   try {
-    fs.writeFileSync(filePath, JSON.stringify(tests, null, 2));
+    let tests = await redis.get('tests') || '[]';
+    tests = JSON.parse(tests);
+    if (index < 0 || index >= tests.length) {
+      return res.status(400).json({ success: false, message: 'Невірний індекс тесту' });
+    }
+    tests.splice(index, 1);
+    await redis.set('tests', JSON.stringify(tests));
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error writing to tests.json:', error);
+    console.error('Error deleting test from Redis:', error);
     res.status(500).json({ success: false, message: 'Помилка видалення тесту' });
   }
 }

@@ -95,6 +95,10 @@ h1 {
   background-color: #28a745;
 }
 
+.test-buttons button.selected-test {
+  background-color: #28a745; /* Цвет при выборе, как в Duolingo */
+}
+
 /* Стили для страницы теста */
 #timer {
   margin-bottom: 20px;
@@ -127,11 +131,19 @@ h1 {
   color: white;
 }
 
-.question {
-  font-size: 24px;
-  font-weight: bold;
+.question-box {
+  padding: 10px;
+  border: 1px solid #ccc;
   margin: 10px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
   text-align: left;
+  background-color: #fff;
+}
+
+.question-box.selected {
+  background-color: #28a745; /* Зеленый цвет при выборе, как в Duolingo */
+  color: white;
 }
 
 #question-container {
@@ -186,7 +198,24 @@ h1 {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 800px;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .navigation {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  #prev, #next, #finish {
+    flex: 1;
+    min-width: 100px;
+    margin: 5px;
+  }
 }
 
 #prev {
@@ -436,36 +465,6 @@ h1 {
   color: white;
   border: none;
   cursor: pointer;
-}
-
-.navigation {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 20px;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%; /* Адаптируем ширину для мобильных устройств */
-  max-width: 800px; /* Ограничиваем максимальную ширину */
-  padding: 0 10px; /* Добавляем отступы по бокам */
-  box-sizing: border-box;
-}
-
-/* Медиа-запрос для мобильных устройств */
-@media (max-width: 600px) {
-  .navigation {
-    flex-wrap: wrap; /* Перенос кнопок на следующую строку, если не помещаются */
-    justify-content: center;
-    gap: 10px; /* Добавляем расстояние между кнопками */
-  }
-
-  #prev, #next, #finish {
-    flex: 1; /* Кнопки занимают равное пространство */
-    min-width: 100px; /* Минимальная ширина кнопок */
-    margin: 5px;
-  }
 }
 
 .test-item button:hover {

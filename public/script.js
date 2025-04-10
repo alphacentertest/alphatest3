@@ -121,6 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = document.createElement('button');
         button.textContent = test.name;
         button.addEventListener('click', async () => {
+          // Удаляем класс selected-test у всех кнопок
+          document.querySelectorAll('.test-buttons button').forEach(btn => btn.classList.remove('selected-test'));
+          // Добавляем класс selected-test к выбранной кнопке
+          button.classList.add('selected-test');
           try {
             const response = await fetch(`/api/script?action=load-questions&test=${test.file.split('.')[0]}`);
             if (!response.ok) {
@@ -156,7 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
       html += `<img src="/images/${question.picture}.png" alt="Picture" style="max-width: 100%; margin-bottom: 10px;">`;
     }
 
-    html += `<div class="question">${index + 1}. ${question.question}</div>`;
+    // Текст вопроса в боксе
+    html += `<div class="question-box" onclick="toggleQuestionSelection(${index})">${index + 1}. ${question.question}</div>`;
     html += `<p class="instruction">${getInstruction(question.type)}</p>`;
 
     if (question.type === 'multiple') {
@@ -206,6 +211,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     }
+
+    // Восстанавливаем состояние бокса вопроса
+    if (selectedOptions[index] && selectedOptions[index].length > 0) {
+      const questionBox = document.querySelector('.question-box');
+      if (questionBox) {
+        questionBox.classList.add('selected');
+      }
+    }
+  }
+
+  function toggleQuestionSelection(index) {
+    const questionBox = document.querySelector('.question-box');
+    if (selectedOptions[index] && selectedOptions[index].length > 0) {
+      questionBox.classList.add('selected');
+    } else {
+      questionBox.classList.remove('selected');
+    }
   }
 
   function selectOption(index, optionIndex, checkbox) {
@@ -229,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateSelection(index);
+    toggleQuestionSelection(index); // Обновляем цвет бокса вопроса
   }
 
   function setupDragAndDrop(index) {
