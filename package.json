@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "dependencies": {
     "alphatest3": "file:",
+    "dotenv": "^16.5.0",
     "exceljs": "^4.4.0",
-    "ioredis": "^5.6.0"
+    "ioredis": "^5.6.1"
   }
 }

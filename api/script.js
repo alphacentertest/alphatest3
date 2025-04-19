@@ -1,5 +1,3 @@
-const ExcelJS = require('exceljs');
-const path = require('path');
 const Redis = require('ioredis');
 
 // Подключаемся к Redis
@@ -61,49 +59,39 @@ async function checkPassword(req, res) {
 
   console.log('Password provided:', password);
 
-  const filePath = path.join(__dirname, '../data/users.xlsx');
-  console.log('File path for users.xlsx:', filePath);
+  try {
+    const usersData = await redis.get('users');
+    if (!usersData) {
+      console.error('Users data not found in Redis');
+      return res.status(500).json({ success: false, message: 'Дані користувачів не знайдено' });
+    }
 
-  if (!fs.existsSync(filePath)) {
-    console.error('File does not exist:', filePath);
-    return res.status(500).json({ message: 'Файл users.xlsx не знайдено' });
-  }
+    const users = JSON.parse(usersData);
+    let isValid = false;
+    let username = '';
+    let role = 'user';
 
-  const workbook = new ExcelJS.Workbook();
-  console.log('Reading users.xlsx');
-  await workbook.xlsx.readFile(filePath);
-
-  const worksheet = workbook.getWorksheet('Users');
-  if (!worksheet) {
-    console.error('Worksheet "Users" not found in users.xlsx');
-    return res.status(500).json({ success: false, message: 'Аркуш "Users" не знайдено' });
-  }
-
-  console.log('Worksheet "Users" found');
-  let isValid = false;
-  let username = '';
-  let role = 'user';
-
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Пропускаем заголовок
-    const storedUsername = row.getCell(1).value; // Имя пользователя в первой колонке
-    const storedPassword = row.getCell(2).value; // Пароль во второй колонке
-    console.log('Stored password at row', rowNumber, ':', storedPassword);
-    if (storedPassword === password) {
-      isValid = true;
-      username = storedUsername;
-      if (storedUsername.toLowerCase() === 'admin') {
-        role = 'admin';
+    for (const user of users) {
+      if (user.password === password) {
+        isValid = true;
+        username = user.username;
+        if (username.toLowerCase() === 'admin') {
+          role = 'admin';
+        }
+        break;
       }
     }
-  });
 
-  if (isValid) {
-    console.log('Password is valid');
-    res.status(200).json({ success: true, role, username });
-  } else {
-    console.log('Password is invalid');
-    res.status(401).json({ success: false, message: 'Пароль невірний' });
+    if (isValid) {
+      console.log('Password is valid');
+      res.status(200).json({ success: true, role, username });
+    } else {
+      console.log('Password is invalid');
+      res.status(401).json({ success: false, message: 'Пароль невірний' });
+    }
+  } catch (error) {
+    console.error('Error checking password:', error);
+    res.status(500).json({ success: false, message: 'Помилка сервера' });
   }
 }
 
@@ -123,41 +111,20 @@ async function loadQuestions(req, res) {
     return res.status(400).json({ message: 'Невірний тест' });
   }
 
-  const filePath = path.join(__dirname, '../data', fileMap[test]);
-  console.log('File path for questions file:', filePath);
+  try {
+    const questionsData = await redis.get(`questions:${test}`);
+    if (!questionsData) {
+      console.error(`Questions data not found in Redis for test: ${test}`);
+      return res.status(500).json({ message: `Питання для тесту ${test} не знайдено` });
+    }
 
-  if (!fs.existsSync(filePath)) {
-    console.error('File does not exist:', filePath);
-    return res.status(500).json({ message: `Файл ${fileMap[test]} не знайдено` });
+    const questions = JSON.parse(questionsData);
+    console.log('Loaded questions from Redis:', questions);
+    res.status(200).json({ questions });
+  } catch (error) {
+    console.error('Error loading questions from Redis:', error);
+    res.status(500).json({ message: 'Помилка завантаження питань' });
   }
-
-  const workbook = new ExcelJS.Workbook();
-  console.log('Reading questions file:', fileMap[test]);
-  await workbook.xlsx.readFile(filePath);
-
-  const worksheet = workbook.getWorksheet('Questions');
-  if (!worksheet) {
-    console.error('Worksheet "Questions" not found in file:', fileMap[test]);
-    return res.status(500).json({ message: 'Аркуш "Questions" не знайдено' });
-  }
-
-  console.log('Worksheet "Questions" found');
-  const questions = [];
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Пропускаем заголовок
-    const question = {
-      picture: row.getCell(1).value, // Picture
-      question: row.getCell(2).value, // Question
-      options: Array.from({ length: 12 }, (_, i) => row.getCell(i + 3).value || null), // Option 1-12
-      correctAnswers: Array.from({ length: 12 }, (_, i) => row.getCell(i + 15).value || null), // Correct Answer 1-12
-      type: row.getCell(27).value, // Type
-      points: parseInt(row.getCell(28).value) || 1 // Points (колонка 28)
-    };
-    questions.push(question);
-  });
-
-  console.log('Loaded questions:', questions);
-  res.status(200).json({ questions });
 }
 
 // Выход из системы
