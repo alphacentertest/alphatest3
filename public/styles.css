@@ -96,7 +96,7 @@ h1 {
 }
 
 .test-buttons button.selected-test {
-  background-color: #28a745; /* Цвет при выборе, как в Duolingo */
+  background-color: #28a745;
 }
 
 /* Стили для страницы теста */
@@ -142,12 +142,12 @@ h1 {
 }
 
 .question-box.selected {
-  background-color: #28a745; /* Зеленый цвет при выборе, как в Duolingo */
+  background-color: #28a745;
   color: white;
 }
 
 #question-container {
-  margin-bottom: 80px; /* Отступ снизу, чтобы кнопки не перекрывали поле ввода */
+  margin-bottom: 80px;
 }
 
 .option-container {

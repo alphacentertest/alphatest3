@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorElement.textContent = result.message || 'Пароль невірний';
       }
     } catch (error) {
+      console.error('Error during login:', error);
       errorElement.textContent = 'Помилка сервера';
     }
   });
@@ -121,9 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = document.createElement('button');
         button.textContent = test.name;
         button.addEventListener('click', async () => {
-          // Удаляем класс selected-test у всех кнопок
           document.querySelectorAll('.test-buttons button').forEach(btn => btn.classList.remove('selected-test'));
-          // Добавляем класс selected-test к выбранной кнопке
           button.classList.add('selected-test');
           try {
             const response = await fetch(`/api/script?action=load-questions&test=${test.file.split('.')[0]}`);
@@ -134,11 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
             questions = (await response.json()).questions;
             selectedOptions = new Array(questions.length).fill(null);
             currentQuestionIndex = 0;
-            timeLeft = test.time * 60; // Время в секундах
+            timeLeft = test.time * 60;
             showPage(testPage);
             displayQuestion(currentQuestionIndex);
             startTimer();
           } catch (error) {
+            console.error('Error loading questions:', error);
             alert('Помилка завантаження питань: ' + error.message);
           }
         });
@@ -156,32 +156,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let html = '';
 
     if (question.picture) {
-      console.log('Adding picture to question:', question.picture);
       html += `<img src="/images/${question.picture}.png" alt="Picture" style="max-width: 100%; margin-bottom: 10px;">`;
     }
 
-    // Текст вопроса в боксе
     html += `<div class="question-box" onclick="toggleQuestionSelection(${index})">${index + 1}. ${question.question}</div>`;
     html += `<p class="instruction">${getInstruction(question.type)}</p>`;
 
     if (question.type === 'multiple') {
-      console.log('Question type is multiple, adding checkbox options');
       question.options.forEach((option, i) => {
         if (option) {
+          const isChecked = selectedOptions[index]?.includes(option) || false;
           html += `
-            <div class="option-container">
-              <input type="checkbox" id="option-${index}-${i}" onchange="selectOption(${index}, ${i}, this)">
+            <div class="option-container ${isChecked ? 'selected' : ''}">
+              <input type="checkbox" id="option-${index}-${i}" ${isChecked ? 'checked' : ''} onchange="selectOption(${index}, ${i}, this)">
               <label for="option-${index}-${i}">${option}</label>
             </div>`;
         }
       });
     } else if (question.type === 'input') {
-      console.log('Question type is input, adding text input');
-      html += `<input type="text" id="answer-input" oninput="updateSelection(${index}, this)">`;
+      html += `<input type="text" id="answer-input" value="${selectedOptions[index] || ''}" oninput="updateSelection(${index}, this)">`;
     } else if (question.type === 'ordering') {
-      console.log('Question type is ordering, adding sortable items');
       html += `<div id="sortable">`;
-      question.options.forEach((option, i) => {
+      (selectedOptions[index] || question.options).forEach((option, i) => {
         if (option) {
           html += `<div class="sortable-item" draggable="true">${option}</div>`;
         }
@@ -193,26 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProgress();
 
     if (question.type === 'ordering') {
-      console.log('Setting up drag-and-drop for ordering question');
       setupDragAndDrop(index);
     }
 
-    // Восстанавливаем состояние чекбоксов
-    if (question.type === 'multiple' && selectedOptions[index]) {
-      selectedOptions[index].forEach(optionText => {
-        question.options.forEach((opt, i) => {
-          if (opt === optionText) {
-            const checkbox = document.getElementById(`option-${index}-${i}`);
-            if (checkbox) {
-              checkbox.checked = true;
-              checkbox.parentElement.classList.add('selected');
-            }
-          }
-        });
-      });
-    }
-
-    // Восстанавливаем состояние бокса вопроса
     if (selectedOptions[index] && selectedOptions[index].length > 0) {
       const questionBox = document.querySelector('.question-box');
       if (questionBox) {
@@ -231,14 +210,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function selectOption(index, optionIndex, checkbox) {
-    console.log('Option selected:', optionIndex, 'Checked:', checkbox.checked);
     const container = checkbox.parentElement;
-  
+    const option = questions[index].options[optionIndex];
+
     if (questions[index].type === 'multiple') {
       if (checkbox.checked) {
         container.classList.add('selected');
+        if (!selectedOptions[index]) selectedOptions[index] = [];
+        if (!selectedOptions[index].includes(option)) {
+          selectedOptions[index].push(option);
+        }
       } else {
         container.classList.remove('selected');
+        if (selectedOptions[index]) {
+          selectedOptions[index] = selectedOptions[index].filter(opt => opt !== option);
+        }
       }
     } else {
       const allOptions = document.querySelectorAll(`#question-container input[type="checkbox"]`);
@@ -248,10 +234,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       checkbox.checked = true;
       container.classList.add('selected');
+      selectedOptions[index] = [option];
     }
-  
-    updateSelection(index);
-    toggleQuestionSelection(index); // Обновляем цвет бокса вопроса
+
+    updateProgress();
+    toggleQuestionSelection(index);
   }
 
   function setupDragAndDrop(index) {
@@ -261,16 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
     sortableItems.forEach(item => {
       item.setAttribute('draggable', 'true');
 
-      // Для компьютера
       item.addEventListener('dragstart', (e) => {
-        console.log('Drag start on item:', e.target.textContent);
         draggedItem = e.target;
         e.dataTransfer.setData('text/plain', e.target.textContent);
         e.target.classList.add('dragging');
       });
 
       item.addEventListener('dragend', (e) => {
-        console.log('Drag end on item:', e.target.textContent);
         e.target.classList.remove('dragging');
         draggedItem = null;
         updateSelection(index, null);
@@ -281,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       item.addEventListener('drop', (e) => {
-        console.log('Drop event on item:', e.target.textContent);
         e.preventDefault();
         const dropTarget = e.target;
         if (draggedItem && dropTarget.classList.contains('sortable-item')) {
@@ -296,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // Для мобильных устройств
       item.addEventListener('touchstart', (e) => {
         draggedItem = e.target;
         draggedItem.classList.add('dragging');
@@ -327,7 +309,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getInstruction(type) {
-    console.log('Getting instruction for question type:', type);
     switch (type) {
       case 'multiple': return '<i>Виберіть усі правильні відповіді</i>';
       case 'input': return '<i>Введіть правильну відповідь</i>';
@@ -336,28 +317,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function updateSelection(index) {
-    console.log('Updating selection for question at index:', index);
+  function updateSelection(index, element) {
     if (questions[index].type === 'multiple') {
-      const selectedBoxes = document.querySelectorAll(`#question-container input[type="checkbox"]:checked`);
-      selectedOptions[index] = Array.from(selectedBoxes).map(box => box.nextElementSibling.textContent.trim());
-      console.log('Updated selection for multiple choice:', selectedOptions[index]);
+      // Уже обработано в selectOption
     } else if (questions[index].type === 'input') {
-      const input = document.getElementById('answer-input');
-      selectedOptions[index] = input ? input.value.trim() : null;
-      console.log('Updated selection for input:', selectedOptions[index]);
+      selectedOptions[index] = element.value.trim();
     } else if (questions[index].type === 'ordering') {
       const sortableItems = document.querySelectorAll('.sortable-item');
       selectedOptions[index] = Array.from(sortableItems).map(item => item.textContent.trim());
-      console.log('Updated selection for ordering:', selectedOptions[index]);
     }
     updateProgress();
   }
 
   function updateProgress() {
-    console.log('Updating progress');
     progressElement.innerHTML = questions.map((_, i) => {
-      const isAnswered = selectedOptions[i] !== null && selectedOptions[i].length > 0;
+      const isAnswered = selectedOptions[i] && selectedOptions[i].length > 0;
       return `<span class="progress-circle ${isAnswered ? 'answered' : 'unanswered'}">${i + 1}</span>`;
     }).join('');
   }
@@ -414,16 +388,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startSuspiciousActivityTracking() {
     window.addEventListener('blur', () => {
-      console.log('Tab lost focus');
       lastBlurTime = Date.now();
     });
 
     window.addEventListener('focus', () => {
-      console.log('Tab gained focus');
       if (lastBlurTime) {
         const timeSpentOutside = (Date.now() - lastBlurTime) / 1000;
         timeOutsideTab += timeSpentOutside;
-        console.log('Time spent outside tab:', timeOutsideTab);
         lastBlurTime = null;
       }
     });
@@ -442,35 +413,30 @@ document.addEventListener('DOMContentLoaded', () => {
       let totalPoints = 0;
       let maxPoints = 0;
       const answers = [];
-  
-      console.log('Starting showResults with questions:', questions);
-      console.log('Selected options:', selectedOptions);
-  
+
       questions.forEach((question, index) => {
-        console.log(`Processing question ${index + 1}:`, question);
         const userAnswer = selectedOptions[index] || [];
         const correctAnswer = question.correctAnswers || [];
-        const points = question.points || 1; // Очки из колонки 28
+        const points = question.points || 1;
         maxPoints += points;
-  
+
         let isCorrect = false;
         if (question.type === 'multiple') {
           const correctSelected = question.options
             .map((opt, i) => (correctAnswer[i] ? opt.trim() : null))
             .filter(opt => opt !== null);
-          console.log(`Question ${index + 1} - Correct Answers:`, correctSelected);
-          console.log(`Question ${index + 1} - User Answers:`, userAnswer);
-  
           if (userAnswer.length === correctSelected.length && userAnswer.every(val => correctSelected.includes(val))) {
             correctAnswers++;
             totalPoints += points;
             isCorrect = true;
           }
         } else if (question.type === 'input') {
-          if (userAnswer && correctAnswer[0] && userAnswer.toLowerCase() === correctAnswer[0].toLowerCase()) {
-            correctAnswers++;
-            totalPoints += points;
-            isCorrect = true;
+          if (userAnswer && correctAnswer[0] && typeof userAnswer === 'string' && typeof correctAnswer[0] === 'string') {
+            if (userAnswer.toLowerCase() === correctAnswer[0].toLowerCase()) {
+              correctAnswers++;
+              totalPoints += points;
+              isCorrect = true;
+            }
           }
         } else if (question.type === 'ordering') {
           if (userAnswer && userAnswer.join('') === correctAnswer.join('')) {
@@ -479,16 +445,16 @@ document.addEventListener('DOMContentLoaded', () => {
             isCorrect = true;
           }
         }
-  
+
         answers.push({
           question: question.question,
-          userAnswer: userAnswer ? userAnswer.join(', ') : 'Немає відповіді',
-          correctAnswer: correctAnswer.join(', '),
+          userAnswer: Array.isArray(userAnswer) ? userAnswer.join(', ') : userAnswer || 'Немає відповіді',
+          correctAnswer: Array.isArray(correctAnswer) ? correctAnswer.join(', ') : correctAnswer,
           points: isCorrect ? points : 0
         });
       });
-  
-      const percentage = Math.round((totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0));
+
+      const percentage = Math.round(totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0);
       const resultContainer = document.getElementById('result-container');
       resultContainer.innerHTML = `
         <div class="result-circle">${percentage}%</div>
@@ -499,10 +465,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Максимально можлива кількість балів: ${maxPoints}</p>
         <p>Відсоток: ${percentage}%</p>
       `;
-  
+
       showPage(resultPage);
-  
-      // Сохраняем результат
+
       const duration = formatDuration((Date.now() - testStartTime) / 1000);
       const suspiciousActivity = calculateSuspiciousActivity();
       saveTestResult(currentUser, totalPoints, maxPoints, percentage, answers, suspiciousActivity, duration);
@@ -545,8 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await response.json();
       if (!result.success) {
         console.error('Failed to save test result:', result.message);
-      } else {
-        console.log('Test result saved successfully');
       }
     } catch (error) {
       console.error('Error saving result:', error);
@@ -554,33 +517,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.getElementById('export-pdf').addEventListener('click', () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // Устанавливаем шрифт Roboto
-    doc.setFont("Roboto", "normal");
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
 
-    // Заголовок
-    doc.setFontSize(16);
-    doc.text('Результати тесту', 10, 10);
+      // Устанавливаем шрифт Roboto
+      doc.setFont("Roboto", "normal");
 
-    // Данные результатов
-    const resultContainer = document.getElementById('result-container');
-    const lines = [
-      `Користувач: ${resultContainer.querySelector('p:nth-child(2)').textContent.split(': ')[1]}`,
-      `Кількість правильних відповідей: ${resultContainer.querySelector('p:nth-child(3)').textContent.split(': ')[1]}`,
-      `Загальна кількість питань: ${resultContainer.querySelector('p:nth-child(4)').textContent.split(': ')[1]}`,
-      `Набрано балів: ${resultContainer.querySelector('p:nth-child(5)').textContent.split(': ')[1]}`,
-      `Максимально можлива кількість балів: ${resultContainer.querySelector('p:nth-child(6)').textContent.split(': ')[1]}`,
-      `Відсоток: ${resultContainer.querySelector('p:nth-child(7)').textContent.split(': ')[1]}`
-    ];
+      // Заголовок
+      doc.setFontSize(16);
+      doc.text('Результати тесту', 10, 10);
 
-    doc.setFontSize(12);
-    lines.forEach((line, index) => {
-      doc.text(line, 10, 20 + (index * 10));
-    });
+      // Данные результатов
+      const resultContainer = document.getElementById('result-container');
+      const lines = [
+        `Користувач: ${resultContainer.querySelector('p:nth-child(2)').textContent.split(': ')[1]}`,
+        `Кількість правильних відповідей: ${resultContainer.querySelector('p:nth-child(3)').textContent.split(': ')[1]}`,
+        `Загальна кількість питань: ${resultContainer.querySelector('p:nth-child(4)').textContent.split(': ')[1]}`,
+        `Набрано балів: ${resultContainer.querySelector('p:nth-child(5)').textContent.split(': ')[1]}`,
+        `Максимально можлива кількість балів: ${resultContainer.querySelector('p:nth-child(6)').textContent.split(': ')[1]}`,
+        `Відсоток: ${resultContainer.querySelector('p:nth-child(7)').textContent.split(': ')[1]}`
+      ];
 
-    doc.save('result.pdf');
+      doc.setFontSize(12);
+      lines.forEach((line, index) => {
+        doc.text(line, 10, 20 + (index * 10));
+      });
+
+      doc.save('result.pdf');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Помилка експорту в PDF: ' + error.message);
+    }
   });
 
   document.getElementById('return-to-main').addEventListener('click', () => {
@@ -714,7 +682,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function viewAnswers(index) {
     try {
-      console.log('Viewing answers for index:', index, 'Test Results:', testResults);
       const result = testResults[index];
       if (!result || !result.answers) {
         throw new Error('Результат або відповіді відсутні');
@@ -742,12 +709,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const testName = document.getElementById(`test-name-${index}`).value;
     const testFile = document.getElementById(`test-file-${index}`).value;
     const testTime = document.getElementById(`test-time-${index}`).value;
-  
+
     if (!testName || !testFile || !testTime) {
       alert('Заповніть усі поля');
       return;
     }
-  
+
     try {
       const response = await fetch('/api/script?action=update-test', {
         method: 'POST',
@@ -758,10 +725,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result.success) {
         tests[index] = { ...tests[index], name: testName, file: testFile, time: parseInt(testTime) };
         alert('Тест оновлено');
-        // Обновляем отображение списка тестов
         document.getElementById('edit-tests').click();
       } else {
-        console.error('Failed to update test:', result.message);
         alert(result.message || 'Помилка оновлення тесту');
       }
     } catch (error) {
@@ -782,7 +747,6 @@ document.addEventListener('DOMContentLoaded', () => {
         testResults.splice(index, 1);
         document.getElementById('view-results').click();
       } else {
-        console.error('Failed to delete result:', result.message);
         alert(result.message || 'Помилка видалення результату');
       }
     } catch (error) {
@@ -810,6 +774,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Показываем страницу авторизации при загрузке
   showPage(loginPage);
 });
