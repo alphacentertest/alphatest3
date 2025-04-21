@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function selectOption(index, optionIndex, checkbox) {
     console.log('Option selected:', optionIndex, 'Checked:', checkbox.checked);
     const container = checkbox.parentElement;
-
+  
     if (questions[index].type === 'multiple') {
       if (checkbox.checked) {
         container.classList.add('selected');
@@ -249,11 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
       checkbox.checked = true;
       container.classList.add('selected');
     }
-
+  
     updateSelection(index);
     toggleQuestionSelection(index); // Обновляем цвет бокса вопроса
   }
-
+  
   function setupDragAndDrop(index) {
     const sortableItems = document.querySelectorAll('.sortable-item');
     let draggedItem = null;
@@ -340,15 +340,15 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Updating selection for question at index:', index);
     if (questions[index].type === 'multiple') {
       const selectedBoxes = document.querySelectorAll(`#question-container input[type="checkbox"]:checked`);
-      selectedOptions[index] = Array.from(selectedBoxes).map(box => box.nextElementSibling.textContent);
+      selectedOptions[index] = Array.from(selectedBoxes).map(box => box.nextElementSibling.textContent.trim());
       console.log('Updated selection for multiple choice:', selectedOptions[index]);
     } else if (questions[index].type === 'input') {
       const input = document.getElementById('answer-input');
-      selectedOptions[index] = input ? input.value : null;
+      selectedOptions[index] = input ? input.value.trim() : null;
       console.log('Updated selection for input:', selectedOptions[index]);
     } else if (questions[index].type === 'ordering') {
       const sortableItems = document.querySelectorAll('.sortable-item');
-      selectedOptions[index] = Array.from(sortableItems).map(item => item.textContent);
+      selectedOptions[index] = Array.from(sortableItems).map(item => item.textContent.trim());
       console.log('Updated selection for ordering:', selectedOptions[index]);
     }
     updateProgress();
@@ -441,17 +441,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalPoints = 0;
     let maxPoints = 0;
     const answers = [];
-
+  
     questions.forEach((question, index) => {
       const userAnswer = selectedOptions[index] || [];
       const correctAnswer = question.correctAnswers;
       const points = question.points || 1; // Очки из колонки 28
       maxPoints += points;
-
+  
       let isCorrect = false;
       if (question.type === 'multiple') {
         const correctSelected = question.options
-          .map((opt, i) => (correctAnswer[i] ? opt : null))
+          .map((opt, i) => (correctAnswer[i] ? opt.trim() : null))
           .filter(opt => opt !== null);
         if (userAnswer.length === correctSelected.length && userAnswer.every(val => correctSelected.includes(val))) {
           correctAnswers++;
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
           isCorrect = true;
         }
       } else if (question.type === 'input') {
-        if (userAnswer && userAnswer.toLowerCase() === correctAnswer[0].toLowerCase()) {
+        if (userAnswer && userAnswer.toLowerCase() === correctAnswer[0]?.toLowerCase()) {
           correctAnswers++;
           totalPoints += points;
           isCorrect = true;
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
           isCorrect = true;
         }
       }
-
+  
       answers.push({
         question: question.question,
         userAnswer: userAnswer ? userAnswer.join(', ') : 'Немає відповіді',
@@ -479,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
         points: isCorrect ? points : 0
       });
     });
-
+  
     const percentage = Math.round((correctAnswers / totalQuestions) * 100);
     const resultContainer = document.getElementById('result-container');
     resultContainer.innerHTML = `
@@ -491,9 +491,9 @@ document.addEventListener('DOMContentLoaded', () => {
       <p>Максимально можлива кількість балів: ${maxPoints}</p>
       <p>Відсоток: ${percentage}%</p>
     `;
-
+  
     showPage(resultPage);
-
+  
     // Сохраняем результат
     const duration = formatDuration((Date.now() - testStartTime) / 1000);
     const suspiciousActivity = calculateSuspiciousActivity();
