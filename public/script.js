@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSelection(index);
     toggleQuestionSelection(index); // Обновляем цвет бокса вопроса
   }
-  
+
   function setupDragAndDrop(index) {
     const sortableItems = document.querySelectorAll('.sortable-item');
     let draggedItem = null;
@@ -436,68 +436,80 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showResults() {
-    const totalQuestions = questions.length;
-    let correctAnswers = 0;
-    let totalPoints = 0;
-    let maxPoints = 0;
-    const answers = [];
+    try {
+      const totalQuestions = questions.length;
+      let correctAnswers = 0;
+      let totalPoints = 0;
+      let maxPoints = 0;
+      const answers = [];
   
-    questions.forEach((question, index) => {
-      const userAnswer = selectedOptions[index] || [];
-      const correctAnswer = question.correctAnswers;
-      const points = question.points || 1; // Очки из колонки 28
-      maxPoints += points;
+      console.log('Starting showResults with questions:', questions);
+      console.log('Selected options:', selectedOptions);
   
-      let isCorrect = false;
-      if (question.type === 'multiple') {
-        const correctSelected = question.options
-          .map((opt, i) => (correctAnswer[i] ? opt.trim() : null))
-          .filter(opt => opt !== null);
-        if (userAnswer.length === correctSelected.length && userAnswer.every(val => correctSelected.includes(val))) {
-          correctAnswers++;
-          totalPoints += points;
-          isCorrect = true;
-        }
-      } else if (question.type === 'input') {
-        if (userAnswer && userAnswer.toLowerCase() === correctAnswer[0]?.toLowerCase()) {
-          correctAnswers++;
-          totalPoints += points;
-          isCorrect = true;
-        }
-      } else if (question.type === 'ordering') {
-        if (userAnswer && userAnswer.join('') === correctAnswer.join('')) {
-          correctAnswers++;
-          totalPoints += points;
-          isCorrect = true;
-        }
-      }
+      questions.forEach((question, index) => {
+        console.log(`Processing question ${index + 1}:`, question);
+        const userAnswer = selectedOptions[index] || [];
+        const correctAnswer = question.correctAnswers || [];
+        const points = question.points || 1; // Очки из колонки 28
+        maxPoints += points;
   
-      answers.push({
-        question: question.question,
-        userAnswer: userAnswer ? userAnswer.join(', ') : 'Немає відповіді',
-        correctAnswer: correctAnswer.join(', '),
-        points: isCorrect ? points : 0
+        let isCorrect = false;
+        if (question.type === 'multiple') {
+          const correctSelected = question.options
+            .map((opt, i) => (correctAnswer[i] ? opt.trim() : null))
+            .filter(opt => opt !== null);
+          console.log(`Question ${index + 1} - Correct Answers:`, correctSelected);
+          console.log(`Question ${index + 1} - User Answers:`, userAnswer);
+  
+          if (userAnswer.length === correctSelected.length && userAnswer.every(val => correctSelected.includes(val))) {
+            correctAnswers++;
+            totalPoints += points;
+            isCorrect = true;
+          }
+        } else if (question.type === 'input') {
+          if (userAnswer && correctAnswer[0] && userAnswer.toLowerCase() === correctAnswer[0].toLowerCase()) {
+            correctAnswers++;
+            totalPoints += points;
+            isCorrect = true;
+          }
+        } else if (question.type === 'ordering') {
+          if (userAnswer && userAnswer.join('') === correctAnswer.join('')) {
+            correctAnswers++;
+            totalPoints += points;
+            isCorrect = true;
+          }
+        }
+  
+        answers.push({
+          question: question.question,
+          userAnswer: userAnswer ? userAnswer.join(', ') : 'Немає відповіді',
+          correctAnswer: correctAnswer.join(', '),
+          points: isCorrect ? points : 0
+        });
       });
-    });
   
-    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-    const resultContainer = document.getElementById('result-container');
-    resultContainer.innerHTML = `
-      <div class="result-circle">${percentage}%</div>
-      <p>Користувач: ${currentUser}</p>
-      <p>Кількість правильних відповідей: ${correctAnswers}</p>
-      <p>Загальна кількість питань: ${totalQuestions}</p>
-      <p>Набрано балів: ${totalPoints}</p>
-      <p>Максимально можлива кількість балів: ${maxPoints}</p>
-      <p>Відсоток: ${percentage}%</p>
-    `;
+      const percentage = Math.round((totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0));
+      const resultContainer = document.getElementById('result-container');
+      resultContainer.innerHTML = `
+        <div class="result-circle">${percentage}%</div>
+        <p>Користувач: ${currentUser}</p>
+        <p>Кількість правильних відповідей: ${correctAnswers}</p>
+        <p>Загальна кількість питань: ${totalQuestions}</p>
+        <p>Набрано балів: ${totalPoints}</p>
+        <p>Максимально можлива кількість балів: ${maxPoints}</p>
+        <p>Відсоток: ${percentage}%</p>
+      `;
   
-    showPage(resultPage);
+      showPage(resultPage);
   
-    // Сохраняем результат
-    const duration = formatDuration((Date.now() - testStartTime) / 1000);
-    const suspiciousActivity = calculateSuspiciousActivity();
-    saveTestResult(currentUser, totalPoints, maxPoints, percentage, answers, suspiciousActivity, duration);
+      // Сохраняем результат
+      const duration = formatDuration((Date.now() - testStartTime) / 1000);
+      const suspiciousActivity = calculateSuspiciousActivity();
+      saveTestResult(currentUser, totalPoints, maxPoints, percentage, answers, suspiciousActivity, duration);
+    } catch (error) {
+      console.error('Error in showResults:', error);
+      alert('Помилка при завершенні тесту: ' + error.message);
+    }
   }
 
   function formatDuration(seconds) {
@@ -702,6 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function viewAnswers(index) {
     try {
+      console.log('Viewing answers for index:', index, 'Test Results:', testResults);
       const result = testResults[index];
       if (!result || !result.answers) {
         throw new Error('Результат або відповіді відсутні');
@@ -729,12 +742,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const testName = document.getElementById(`test-name-${index}`).value;
     const testFile = document.getElementById(`test-file-${index}`).value;
     const testTime = document.getElementById(`test-time-${index}`).value;
-
+  
     if (!testName || !testFile || !testTime) {
       alert('Заповніть усі поля');
       return;
     }
-
+  
     try {
       const response = await fetch('/api/script?action=update-test', {
         method: 'POST',
@@ -748,7 +761,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Обновляем отображение списка тестов
         document.getElementById('edit-tests').click();
       } else {
-        alert('Помилка оновлення тесту');
+        console.error('Failed to update test:', result.message);
+        alert(result.message || 'Помилка оновлення тесту');
       }
     } catch (error) {
       console.error('Error updating test:', error);
@@ -768,6 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
         testResults.splice(index, 1);
         document.getElementById('view-results').click();
       } else {
+        console.error('Failed to delete result:', result.message);
         alert(result.message || 'Помилка видалення результату');
       }
     } catch (error) {
